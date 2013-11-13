@@ -1,0 +1,28 @@
+{
+  "name": "uri-monitor",
+  "repo": "jasonkuhrt/uri-monitor",
+  "description": "Monitor a URI's connectivity",
+  "version": "0.0.1",
+  "keywords": [
+    "uri",
+    "url",
+    "monitor",
+    "event",
+    "status",
+    "connection",
+    "disconnection"
+  ],
+  "dependencies": {
+    "visionmedia/debug": "*",
+    "visionmedia/superagent": "*",
+    "hij1nx/EventEmitter2": "*",
+    "lodash/lodash": "*"
+  },
+  "development": {},
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": [
+    "index.js"
+  ],
+  "remotes": []
+}
