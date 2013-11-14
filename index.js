@@ -16,63 +16,79 @@ module.exports = function create_uri_monitor(uri, interval_ms){
 
 
   var api = new EventEmitter2();
+  var handle_ping_response = make_tracker(1, do_handle_ping_response);
 
   api.start = function(){
-    var do_ping = function(){
-      listener_count() ? api.ping(loop) : api.stop() ;
-    };
+    log('start');
     var loop = function(){
       is_monitoring = setTimeout(do_ping, interval_ms);
     };
-    loop();
-    log('start');
-    return this;
+    var do_ping = _.partial(api.ping, loop);
+    do_ping();
   };
 
   api.stop = function(){
+    log('stop');
     clearTimeout(is_monitoring);
     reboot();
-    log('stop');
-    return this;
   };
 
   api.ping = function(callback){
-    var options = {};
+    log('pinging', uri);
     var handle_response = function(err, res){
       var any_error = err || res.error;
-      if (any_error) {
-        log('ping got error:', String(any_error));
-        api.emit('drop');
-      } else {
-        log('ping got reply:', res);
-        api.emit('pong');
+      handle_ping_response(any_error ? false : true);
+      if (_.isFunction(callback)) {
+        callback(err, res);
       }
-      if (typeof callback === 'function') { callback(err, res); }
     };
+
     request(uri).end(handle_response);
-    log('pinging', uri);
   };
 
 
 
-  // private
+
+
+  // Private
 
   var is_monitoring;
 
-  var listener_count = function(){
-    return _.compose(_.size, _.flatten, _.map)(['pong', 'drop'], _.bind(api.listeners, api));
-  };
+  function do_handle_ping_response(response, history){
+    var response_type = response ? 'pong' : 'drop' ;
+    log('ping got ' + response_type);
+    var response_prev = _.first(history);
 
-  var reboot = function(){
-    api.once('newListener', function(a){
-      api.start();
-    });
-  };
+    // Emit an event for cases where the response_type differs from previous.
 
+    if (_.isUndefined(response_prev)){
+      // Always emit on the response of the first ping
+      api.emit({true:'connection', false:'disconnection'}[response]);
+    } else if (!response_prev && response) {
+      api.emit('connection');
+    } else if (response_prev && !response) {
+      api.emit('disconnection');
+    }
 
+  }
 
-  // kick-off
-
-  reboot();
   return api;
 };
+
+
+// Helpers
+
+function tern(condition_f, true_f, false_f){
+  condition_f() ? true_f() : false_f() ;
+}
+
+function make_tracker(max_history_size, handler_f){
+  var history = [];
+  return function(value){
+    handler_f(value, _.clone(history));
+    history.unshift(value);
+    if (_.size(history) > max_history_size) {
+      history.pop();
+    }
+  }
+}

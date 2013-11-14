@@ -11,6 +11,8 @@ component install jasonkuhrt/uri-monitor
 #### ping(callback(err, response))
 #### event 'drop'
 #### event 'pong'
+#### event 'connecton'
+#### event 'disconnection'
 
 ## Notes
 Enable debug mode with label `uri_monitor` using [debug](https://github.com/visionmedia/debug)
