@@ -43,18 +43,24 @@ module.exports = function create_uri_monitor(uri, interval_ms){
   var handle_ping_response = state(1, do_handle_ping_response);
 
   api.start = function(){
+    if (_is_monitoring) return;
+    _is_monitoring = true;
     log('start');
     var loop = function(){
-      is_monitoring = setTimeout(do_ping, interval_ms);
+      if (is_monitoring) {
+        _next_ping_timeout = setTimeout(do_ping, interval_ms);
+      }
     };
     var do_ping = partial(api.ping, loop);
     do_ping();
   };
 
   api.stop = function(){
+    if (not(_is_monitoring)) return;
     log('stop');
-    clearTimeout(is_monitoring);
-    reboot();
+    _is_monitoring = false;
+    clearTimeout(_next_ping_timeout);
+    if (_current_request) _current_request.abort();
   };
 
   api.ping = function(callback){
@@ -64,7 +70,7 @@ module.exports = function create_uri_monitor(uri, interval_ms){
       maybef(callback)(err, res)
     };
 
-    request(uri).end(handle_response);
+    _current_request = request(uri).end(handle_response);
   };
 
 
@@ -73,7 +79,9 @@ module.exports = function create_uri_monitor(uri, interval_ms){
 
   // Private
 
-  var is_monitoring;
+  var _is_monitoring;
+  var _current_request;
+  var _next_ping_timeout;
 
   function do_handle_ping_response(is_pong, pong_history){
     var maybe_connection_change = curry(function(is_pong, was_pong){
