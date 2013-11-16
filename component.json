@@ -16,13 +16,16 @@
     "visionmedia/debug": "*",
     "visionmedia/superagent": "*",
     "hij1nx/EventEmitter2": "*",
-    "lodash/lodash": "*"
+    "lodash/lodash": "*",
+    "jasonkuhrt/maybef": "*",
+    "jasonkuhrt/maybe": "*"
   },
   "development": {},
   "license": "MIT",
   "main": "index.js",
   "scripts": [
-    "index.js"
+    "index.js",
+    "lib/state.js"
   ],
   "remotes": []
 }
