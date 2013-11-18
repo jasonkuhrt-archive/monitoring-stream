@@ -47,7 +47,7 @@ module.exports = function create_uri_monitor(uri, interval_ms){
     _is_monitoring = true;
     log('start');
     var loop = function(){
-      if (is_monitoring) {
+      if (_is_monitoring) {
         _next_ping_timeout = setTimeout(do_ping, interval_ms);
       }
     };
