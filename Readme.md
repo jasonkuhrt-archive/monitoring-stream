@@ -11,7 +11,7 @@ Install with [component(1)](http://component.io):
 
 Install with [npm(1)](https://npmjs.org)
 
-    $ npm install jasonkuhrt/uri-monitor
+    $ npm install uri-monitor
 
 
 ## API
