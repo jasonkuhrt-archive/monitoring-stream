@@ -4,7 +4,6 @@ var request = require('superagent');
 var log = require('debug')('uri_monitor');
 var Maybe = require('maybe');
 var state = require('./lib/state');
-var maybef = require('maybef');
 
 // Helpers
 
@@ -67,7 +66,7 @@ module.exports = function create_uri_monitor(uri, interval_ms){
     log('pinging', uri);
     var handle_response = function(err, res){
       handle_ping_response(err || res.error ? false : true);
-      maybef(callback)(err, res)
+      if (_.isFunction(callback)) callback(err, res) ;
     };
 
     _current_request = request(uri).end(handle_response);

@@ -17,7 +17,6 @@
     "visionmedia/superagent": "*",
     "hij1nx/EventEmitter2": "*",
     "lodash/lodash": "*",
-    "jasonkuhrt/maybef": "*",
     "jasonkuhrt/maybe": "*"
   },
   "development": {},

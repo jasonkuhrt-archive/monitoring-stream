@@ -1,0 +1,41 @@
+{
+  "name": "uri-monitor",
+  "version": "0.0.4",
+  "description": "Monitor a URI's connectivity",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "eventemitter2": "~0.4.13",
+    "lodash": "~2.3.0",
+    "superagent": "~0.15.7",
+    "debug": "~0.7.4",
+    "maybe": "git://github.com/jasonkuhrt/maybe"
+  },
+  "devDependencies": {
+    "tap": "~0.4.4",
+    "nock": "~0.23.0"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jasonkuhrt/uri-monitor.git"
+  },
+  "keywords": [
+    "uri",
+    "url",
+    "monitor",
+    "event",
+    "connection",
+    "disconnection",
+    "status"
+  ],
+  "author": "Jason Kuhrt <jasonkuhrt@me.com> (http://jasonkuhrt.com/)",
+  "license": "BSD-2-Clause",
+  "bugs": {
+    "url": "https://github.com/jasonkuhrt/uri-monitor/issues"
+  }
+}
