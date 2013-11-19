@@ -1,6 +1,6 @@
 {
   "name": "uri-monitor",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Monitor a URI's connectivity",
   "main": "index.js",
   "directories": {

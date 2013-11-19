@@ -2,7 +2,7 @@
   "name": "uri-monitor",
   "repo": "jasonkuhrt/uri-monitor",
   "description": "Monitor a URI's connectivity",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "keywords": [
     "uri",
     "url",
