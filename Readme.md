@@ -25,9 +25,6 @@ Install with [npm(1)](https://npmjs.org)
 ##### stop
     stop :: -> undefined
 
-##### ping
-    ping :: (err, response -> a) -> undefined
-
 ### Instance Events
 ##### drop
     'drop', Error

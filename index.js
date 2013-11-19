@@ -75,16 +75,14 @@ module.exports = function create_uri_monitor(uri, interval_ms){
     }
   };
 
-  api.ping = function(callback){
+  api.ping = function(){
     log('pinging', uri);
     var handle_response = function(err, res){
       var any_error = err || res.error;
       state((any_error ? false : true), function(is_pong, pong_history){
         do_handle_ping_response(is_pong, first(pong_history), any_error || res);
       });
-      if (_.isFunction(callback)) callback(err, res) ;
     };
-
     _current_request = request(uri).timeout(2000).end(handle_response);
   };
 
