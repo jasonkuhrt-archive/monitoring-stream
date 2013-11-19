@@ -15,7 +15,7 @@
   "dependencies": {
     "visionmedia/debug": "*",
     "visionmedia/superagent": "*",
-    "hij1nx/EventEmitter2": "*",
+    "jasonkuhrt/EventEmitter2": "*",
     "lodash/lodash": "*",
     "jasonkuhrt/maybe": "*"
   },
