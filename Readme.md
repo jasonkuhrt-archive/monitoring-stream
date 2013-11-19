@@ -15,13 +15,32 @@ Install with [npm(1)](https://npmjs.org)
 
 
 ## API
-#### start()
-#### stop()
-#### ping(callback(err, response))
-#### event 'drop'
-#### event 'pong'
-#### event 'connecton'
-#### event 'disconnection'
+### Constructor
+    URI_Monitor :: String uri, Int interval_ms -> uri_monitor
+
+### Instance Methods
+##### start
+    start :: -> undefined
+
+##### stop
+    stop :: -> undefined
+
+##### ping
+    ping :: (err, response -> a) -> undefined
+
+### Instance Events
+##### drop
+    'drop', Error
+
+##### pong
+    'pong', Response
+
+##### connection
+    'connecton'
+
+##### disconnection
+    'disconnection'
+
 
 
 ## Notes

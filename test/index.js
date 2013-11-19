@@ -2,6 +2,8 @@ var test = require('tap').test;
 var nock = require('nock');
 var Monitor = require('../');
 var _ = require('lodash');
+var express = require('express');
+var http = require('http');
 
 
 
@@ -44,7 +46,7 @@ var check_history = function(t, stats, history){
   t.deepEqual(stats.history, history, 'Monitor history');
 };
 
-var uri = 'http://foobar.com';
+var uri = 'http://localhost:9333';
 
 
 
@@ -101,7 +103,7 @@ test('uri-monitor emits a \'connection\' event when a \'drop\' is followed by a 
 
 
 test('uri-monitor emits a \'disconnection\' event when a \'pong\' is followed by a \'drop\'.', function(t){
-  t.plan(2)
+  t.plan(2);
   var response = nock(uri)
     .get('/').times(2).reply(200)
     .get('/').reply(404);
@@ -111,4 +113,26 @@ test('uri-monitor emits a \'disconnection\' event when a \'pong\' is followed by
     t.equal(response.isDone(), true);
     check_history(t, stop(), ['pong', 'connection', 'pong', 'drop', 'disconnection']);
   });
+});
+
+
+test('uri-monitor requests timeout after 2 seconds.', function(t){
+  t.plan(2);
+  var monitor = Monitor(uri, 10000);
+
+  // Crate a server that will never respond...
+  var app = express();
+  var server = http.createServer(app);
+  app.get('/', function(){});
+
+  server.listen(9333, function(){
+    var stop = start(monitor);
+    monitor.on('drop', function(err){
+      t.equal(err.timeout, 2000);
+      check_history(t, stop(), ['drop']);
+      server.close();
+      server.unref();
+    });
+  });
+
 });

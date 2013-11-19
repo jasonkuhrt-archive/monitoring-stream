@@ -15,10 +15,11 @@
   },
   "devDependencies": {
     "tap": "~0.4.4",
-    "nock": "~0.23.0"
+    "nock": "~0.23.0",
+    "express": "~3.4.4"
   },
   "scripts": {
-    "test": "tap test/*.js"
+    "test": "tap test/*.js --stderr"
   },
   "repository": {
     "type": "git",
