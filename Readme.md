@@ -1,5 +1,4 @@
-
-# uri-monitor [![Build Status](https://travis-ci.org/jasonkuhrt/uri-monitor.png)](https://travis-ci.org/jasonkuhrt/uri-monitor)
+# uri-monitor [![Build Status](https://travis-ci.org/jasonkuhrt/uri-monitor.png)](https://travis-ci.org/jasonkuhrt/uri-monitor) [![Dependency Status](https://gemnasium.com/jasonkuhrt/uri-monitor.png)](https://gemnasium.com/jasonkuhrt/uri-monitor) [![NPM version](https://badge.fury.io/js/uri-monitor.png)](http://badge.fury.io/js/uri-monitor)
   Monitor a URI's connectivity
 
 
