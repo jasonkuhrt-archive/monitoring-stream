@@ -36,12 +36,13 @@ function connection_change_to_event_name(to_connection){
 
 
 // @param uri <String>
-// @param interval_ms <Int> ?(1000)
+// @param opt_interval_ms <Int> ?(1000)
 
-module.exports = function create_uri_monitor(uri, interval_ms){
+module.exports = function create_uri_monitor(uri, opt_interval_ms, opt_timeout_ms){
   // TODO arg assertions
 
-  interval_ms = interval_ms || 1000;
+  opt_interval_ms = opt_interval_ms || 1000;
+  opt_timeout_ms = opt_timeout_ms || 4000;
 
 
 
@@ -58,7 +59,7 @@ module.exports = function create_uri_monitor(uri, interval_ms){
     log('start');
     var loop = function(){
       if (_is_monitoring) {
-        _next_ping_timeout = setTimeout(do_ping, interval_ms);
+        _next_ping_timeout = setTimeout(do_ping, opt_interval_ms);
       }
     };
     var do_ping = partial(api.ping, loop);
@@ -85,7 +86,7 @@ module.exports = function create_uri_monitor(uri, interval_ms){
       if (_.isFunction(callback)) callback(err, res) ;
     };
 
-    _current_request = request(uri).timeout(2000).end(handle_response);
+    _current_request = request(uri).timeout(opt_timeout_ms).end(handle_response);
   };
 
 

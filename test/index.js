@@ -118,7 +118,7 @@ test('uri-monitor emits a \'disconnection\' event when a \'pong\' is followed by
 
 test('uri-monitor requests timeout after 2 seconds.', function(t){
   t.plan(2);
-  var monitor = Monitor(uri, 10000);
+  var monitor = Monitor(uri, 10000, 100);
 
   // Crate a server that will never respond...
   var app = express();
@@ -128,7 +128,7 @@ test('uri-monitor requests timeout after 2 seconds.', function(t){
   server.listen(9333, function(){
     var stop = start(monitor);
     monitor.on('drop', function(err){
-      t.equal(err.timeout, 2000);
+      t.equal(err.timeout, 100);
       check_history(t, stop(), ['drop']);
       server.close();
       server.unref();
