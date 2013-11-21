@@ -15,7 +15,12 @@ Install with [npm(1)](https://npmjs.org)
 
 ## API
 ### Constructor
-    URI_Monitor :: String uri, Int interval_ms -> uri_monitor
+    URI_Monitor :: String uri, Int interval_ms, Int timeout_ms -> uri_monitor
+
+    uri: The URI to monitor
+    interval_ms: The time between pings
+    timeout_ms: How long ping waits for a response before declaring it timedout
+
 
 ### Instance Methods
 ##### start
