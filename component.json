@@ -2,7 +2,7 @@
   "name": "uri-monitor",
   "repo": "jasonkuhrt/uri-monitor",
   "description": "Monitor a URI's connectivity",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "keywords": [
     "uri",
     "url",
@@ -15,9 +15,9 @@
   "dependencies": {
     "visionmedia/debug": "*",
     "visionmedia/superagent": "*",
-    "jasonkuhrt/EventEmitter2": "patch-1",
     "lodash/lodash": "*",
-    "jasonkuhrt/maybe": "*"
+    "jasonkuhrt/maybe": "*",
+    "asyncly/EventEmitter2": "*"
   },
   "development": {},
   "license": "MIT",
