@@ -1,4 +1,4 @@
-# uri-monitor [![Code Climate](https://codeclimate.com/github/jasonkuhrt/uri-monitor.png)](https://codeclimate.com/github/jasonkuhrt/uri-monitor) [![Build Status](https://travis-ci.org/jasonkuhrt/uri-monitor.png)](https://travis-ci.org/jasonkuhrt/uri-monitor) [![Dependency Status](https://gemnasium.com/jasonkuhrt/uri-monitor.png)](https://gemnasium.com/jasonkuhrt/uri-monitor) <a href="http://badge.fury.io/js/uri-monitor"><img src="https://badge.fury.io/js/uri-monitor@2x.png" alt="NPM version" height="18"></a>
+# uri-monitor [![Build Status](https://travis-ci.org/jasonkuhrt/uri-monitor.png)](https://travis-ci.org/jasonkuhrt/uri-monitor) [![Dependency Status](https://gemnasium.com/jasonkuhrt/uri-monitor.png)](https://gemnasium.com/jasonkuhrt/uri-monitor) <a href="http://badge.fury.io/js/uri-monitor"><img src="https://badge.fury.io/js/uri-monitor@2x.png" alt="NPM version" height="18"></a>
   Monitor a URI's connectivity
 
 
