@@ -7,11 +7,11 @@
     "test": "test"
   },
   "dependencies": {
+    "debug": "^1.0.2",
     "eventemitter2": "~0.4.13",
-    "lodash": "~2.3.0",
-    "superagent": "~0.15.7",
-    "debug": "~0.7.4",
-    "maybe": "git://github.com/jasonkuhrt/maybe"
+    "lodash": "^2.4.1",
+    "maybe": "git://github.com/jasonkuhrt/maybe",
+    "superagent": "^0.18.0"
   },
   "devDependencies": {
     "tap": "~0.4.4",

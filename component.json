@@ -13,11 +13,11 @@
     "disconnection"
   ],
   "dependencies": {
-    "visionmedia/debug": "*",
-    "visionmedia/superagent": "*",
-    "lodash/lodash": "*",
-    "jasonkuhrt/maybe": "*",
-    "asyncly/EventEmitter2": "*"
+    "visionmedia/superagent": "~0.18.0",
+    "lodash/lodash": "^2.4.1",
+    "jasonkuhrt/maybe": "~0.0.2",
+    "visionmedia/debug": "^1.0.2",
+    "jasonkuhrt/eventemitter2": "~0.4.14"
   },
   "development": {},
   "license": "MIT",
@@ -25,6 +25,5 @@
   "scripts": [
     "index.js",
     "lib/state.js"
-  ],
-  "remotes": []
+  ]
 }
