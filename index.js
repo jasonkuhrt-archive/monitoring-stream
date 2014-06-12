@@ -10,40 +10,22 @@ var State = require('./lib/state');
 var all = _.all;
 var partial = _.partial;
 var partial_right = _.partialRight;
-var map = _.map;
 var first = _.first;
-var tap = _.tap;
 var compose = _.compose;
 var to_array = _.toArray;
 var curry = _.curry;
-var not = function(a){ return !a; }
-
-var maybe_connection_change = curry(function(is_pong, was_pong){
-  return Maybe(all([is_pong, not(was_pong)]) ? true  :
-               all([not(is_pong), was_pong]) ? false :
-               null);
-});
-
-function ping_result_to_event_name(is_pong){
-  return is_pong ? 'pong' : 'drop';
-}
-
-function connection_change_to_event_name(to_connection){
-  return to_connection ? 'connection' : 'disconnection'
-}
-
+var not = function(a){ return !a; };
 
 
 
 // @param uri <String>
 // @param opt_interval_ms <Int> ?(1000)
 
-module.exports = function create_uri_monitor(uri, opt_interval_ms, opt_timeout_ms){
-  // TODO arg assertions
+module.exports = create_uri_monitor;
 
+function create_uri_monitor(uri, opt_interval_ms, opt_timeout_ms){
   opt_interval_ms = opt_interval_ms || 1000;
   opt_timeout_ms = opt_timeout_ms || 4000;
-
 
 
   var api = new EventEmitter2();
@@ -90,9 +72,6 @@ module.exports = function create_uri_monitor(uri, opt_interval_ms, opt_timeout_m
   };
 
 
-
-
-
   // Private
 
   var _is_monitoring;
@@ -113,4 +92,29 @@ module.exports = function create_uri_monitor(uri, opt_interval_ms, opt_timeout_m
   }
 
   return api;
-};
+}
+
+
+
+
+
+
+// Private
+
+var maybe_connection_change = curry(function(is_pong, was_pong){
+  return Maybe(all([is_pong, not(was_pong)]) ? true  :
+               all([not(is_pong), was_pong]) ? false :
+               null);
+});
+
+
+
+function ping_result_to_event_name(is_pong){
+  return is_pong ? 'pong' : 'drop';
+}
+
+
+
+function connection_change_to_event_name(to_connection){
+  return to_connection ? 'connection' : 'disconnection';
+}
