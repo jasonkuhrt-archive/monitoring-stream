@@ -1,20 +1,19 @@
 var EventEmitter2 = require('eventemitter2').EventEmitter2;
-var _ = require('lodash');
 var request = require('superagent');
 var log = require('debug')('uri_monitor');
 var Maybe = require('maybe');
+var lo = require('lodash'),
+    all = lo.all,
+    partial = lo.partial,
+    partial_right = lo.partialRight,
+    first = lo.first,
+    compose = lo.compose,
+    to_array = lo.toArray,
+    curry = lo.curry,
+    not = function(a){ return !a; };
 var State = require('./lib/state');
 
-// Helpers
 
-var all = _.all;
-var partial = _.partial;
-var partial_right = _.partialRight;
-var first = _.first;
-var compose = _.compose;
-var to_array = _.toArray;
-var curry = _.curry;
-var not = function(a){ return !a; };
 
 
 
@@ -65,7 +64,7 @@ function create_uri_monitor(uri, opt_interval_ms, opt_timeout_ms){
       state((any_error ? false : true), function(is_pong, pong_history){
         do_handle_ping_response(is_pong, first(pong_history), any_error || res);
       });
-      if (_.isFunction(callback)) callback(err, res) ;
+      if (lo.isFunction(callback)) callback(err, res) ;
     };
 
     _current_request = request(uri).timeout(opt_timeout_ms).end(handle_response);
