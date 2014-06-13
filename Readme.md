@@ -4,52 +4,65 @@
 
 ## Installation
 
-Install with [component(1)](http://component.io):
+Install with [component(1)](http://component.io) for client:
 
     $ component install jasonkuhrt/uri-monitor
 
-Install with [npm(1)](https://npmjs.org)
+Install with [npm(1)](https://npmjs.org) for server:
 
     $ npm install uri-monitor
 
 
 ## API
+
 ### Constructor
-    URI_Monitor :: String uri, Int interval_ms, Int timeout_ms -> uri_monitor
 
-    uri: The URI to monitor
-    interval_ms: The time between pings
-    timeout_ms: How long ping waits for a response before declaring it timedout
+    URI_Monitor :: String URI, Int check_interval_ms -> uri_monitor
 
+- `uri` The URI to monitor. Plain GET requests willbe made against this.
+- `interval_ms` The time between checks
 
-### Instance Methods
-##### start
-    start :: -> undefined
-
-##### stop
-    stop :: -> undefined
-
-### Instance Events
-##### drop
-    'drop', Error
-
-##### pong
-    'pong', Response
-
-##### connection
-    'connecton'
-
-##### disconnection
-    'disconnection'
+`uri_monitor` is an instance of [EventEmitter2](https://github.com/asyncly/EventEmitter2).
 
 
+### Methods
+
+##### .start()
+    start :: -> uri_monitor
+
+    Begin the monitor; Boots a setInterval.
+
+##### .stop()
+    stop :: -> uri_monitor
+
+Stop the monitor:
+  - kills the current setInterval
+  - Aborts the current request via [`superagent.abort()`](http://visionmedia.github.io/superagent/#aborting-requests).
+
+##### .check()
+    check :: -> uri_monitor
+Force a manual check. This is a totally independent check. It does not affect the start/stop system in any way. It does not affect the setInterval being run.
+
+##### .on()
+    on :: String event_name, (* -> void) -> uri_monitor
+
+Listen for events.
+
+event name | callback arguments
+-----------|-------------------
+`'check'` | `is_connected :: Boolean`, `response :: Check_Result`
+`'change'` | `is_connected :: Boolean`, `response :: Check_Result`
+
+## Types
+
+##### `Check_Result`
+
+`superagent` has two types of request errors: general IO and response errors in the 400 or 500 range. URI Monitor treats both as a check failure. Result can be one of three things:
+
+1. If a successful request then the `superagent` [`response`](http://visionmedia.github.io/superagent/#response-properties) object.
+2. If a failed request due to IO, then the [`err`](http://visionmedia.github.io/superagent/#error-handling) as returned by `superagent`.
+3. If a failed request due to 4xx/5xx range response, then the [`response.error`](http://visionmedia.github.io/superagent/#error-handling) as provided by `superagent`.
 
 ## Notes
-  Following the first `ping()` a `connection` event is emitted if said `ping()` got `pong`, or a `disconnection` event is emitted if said `ping()` got `drop`.
 
-  Enable debug mode with label `uri_monitor` using [debug](https://github.com/visionmedia/debug)
-
-
-## License
-
-  BSD-2-Clause
+  - Enable debug mode with label `uri-monitor` using [debug](https://github.com/visionmedia/debug)

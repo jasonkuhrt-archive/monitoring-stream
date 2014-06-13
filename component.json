@@ -14,12 +14,14 @@
   ],
   "dependencies": {
     "visionmedia/superagent": "~0.18.0",
-    "lodash/lodash": "^2.4.1",
     "jasonkuhrt/maybe": "~0.0.2",
     "visionmedia/debug": "^1.0.2",
     "jasonkuhrt/eventemitter2": "~0.4.14"
   },
-  "development": {},
+  "development": {
+    "chaijs/chai": "^1.9.1",
+    "lodash/lodash": "^2.4.1"
+  },
   "license": "MIT",
   "main": "index.js",
   "scripts": [

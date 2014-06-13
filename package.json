@@ -9,17 +9,17 @@
   "dependencies": {
     "debug": "^1.0.2",
     "eventemitter2": "~0.4.13",
-    "lodash": "^2.4.1",
-    "maybe": "git://github.com/jasonkuhrt/maybe",
     "superagent": "^0.18.0"
   },
   "devDependencies": {
-    "tap": "~0.4.4",
-    "nock": "~0.23.0",
-    "express": "~3.4.4"
+    "chai": "^1.9.1",
+    "coffee-script": "^1.7.1",
+    "mocha": "^1.20.1",
+    "nock": "^0.34.1"
   },
   "scripts": {
-    "test": "tap test/*.js --stderr"
+    "dev": "mocha --compilers 'coffee:coffee-script/register' --reporter spec --watch",
+    "test": "mocha --compilers 'coffee:coffee-script/register'"
   },
   "repository": {
     "type": "git",
