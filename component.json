@@ -14,7 +14,6 @@
   ],
   "dependencies": {
     "visionmedia/superagent": "~0.18.0",
-    "jasonkuhrt/maybe": "~0.0.2",
     "visionmedia/debug": "^1.0.2",
     "jasonkuhrt/eventemitter2": "~0.4.14"
   },
@@ -25,7 +24,6 @@
   "license": "MIT",
   "main": "index.js",
   "scripts": [
-    "index.js",
-    "lib/state.js"
+    "index.js"
   ]
 }
