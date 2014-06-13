@@ -60,7 +60,13 @@ function create_uri_monitor(uri, check_interval_ms){
 
   function update_checked_result(is_connected, err_or_res){
     api.emit('check', is_connected, err_or_res);
-    if (is_connected !== api.state.was_connected) api.emit('change', is_connected, err_or_res);
+    api.emit((is_connected ? 'pong' : 'drop' ), err_or_res);
+
+    if (is_connected !== api.state.was_connected) {
+      api.emit('change', is_connected, err_or_res);
+      api.emit((is_connected ? 'connection' : 'disconnection' ), err_or_res);
+    }
+
     api.state.was_connected = is_connected;
   }
 

@@ -48,10 +48,14 @@ Force a manual check. This is a totally independent check. It does not affect th
 
 Listen for events.
 
-event name | callback arguments
------------|-------------------
-`'check'` | `is_connected :: Boolean`, `response :: Check_Result`
-`'change'` | `is_connected :: Boolean`, `response :: Check_Result`
+event name | callback arguments | description
+-----------|--------------------|-----------------------------------
+`'check'`  | `is_connected :: Boolean`, `response :: Check_Result` | A check result
+`'change'` | `is_connected :: Boolean`, `response :: Check_Result` | A check result, and it is different than the last check
+`'pong'`            | `response :: Check_Result` | A check result that is a success
+`'drop'`            | `response :: Check_Result` | A check result that is a failure
+`'connection'`      | `response :: Check_Result` | A check result that is a success, and it is different than the last check
+`'disconnection'`   | `response :: Check_Result` | A check result that is a failure, and it is different than the last check
 
 ## Types
 
