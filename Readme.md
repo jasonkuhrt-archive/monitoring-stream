@@ -3,14 +3,9 @@
 
 
 ## Installation
-
-Install with [component(1)](http://component.io) for client:
-
-    $ component install jasonkuhrt/uri-monitor
-
-Install with [npm(1)](https://npmjs.org) for server:
-
-    $ npm install uri-monitor
+```
+npm install uri-monitor
+```
 
 
 ## API
