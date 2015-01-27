@@ -1,7 +1,6 @@
-
-
-
 uri = 'http://localhost:9333'
+
+
 
 describe 'uri-monitor', ->
   @timeout 5000
