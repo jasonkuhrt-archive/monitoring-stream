@@ -1,4 +1,4 @@
-var EventEmitter2 = require('eventemitter2').EventEmitter2;
+var EventEmitter3 = require('eventemitter3');
 var request = require('superagent');
 var log = require('debug')('uri-monitor');
 
@@ -14,7 +14,7 @@ module.exports = create_uri_monitor;
 function create_uri_monitor(uri, check_interval_ms){
   check_interval_ms = check_interval_ms || 1000;
 
-  var api = new EventEmitter2();
+  var api = new EventEmitter3();
 
   api.state = fresh_state();
 
