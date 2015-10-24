@@ -28,7 +28,7 @@
     "test": "test"
   },
   "version": "0.4.0",
-  "main": "index.js",
+  "main": "lib/main.js",
   "description": "Monitor a URI's connectivity",
   "devDependencies": {
     "chai": "^1.9.1",
