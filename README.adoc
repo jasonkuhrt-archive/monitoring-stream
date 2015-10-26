@@ -21,49 +21,17 @@ npm install uri-monitor
 
 ### Constructor
 ```haskell
-UriMonitor :: String URI, Int check_interval_ms -> UriMonitor
+UriMonitor :: String, Int -> Stream Event
 ```
 
 * `uri` The URI to monitor. Plain GET requests will be made against this.
-* `interval_ms` The time between checks
-
-`UriMonitor` is an instance of link:https://github.com/asyncly/EventEmitter2[EventEmitter2].
-
-
-### Methods
-
-##### #start()
-```haskell
-start :: -> UriMonitor
-```
-
-Begin the monitor; Boots a setInterval.
-
-##### #stop()
-```haskell
-stop :: -> UriMonitor
-```
-
-Stop the monitor:
-* kills the current setInterval
-* Aborts the current request via link:http://visionmedia.github.io/superagent/#aborting-requests[`superagent.abort()`].
-
-##### #check()
-```haskell
-check :: -> UriMonitor
-```
-
-Force a manual check. This is a totally independent check. It does not affect the start/stop system in any way. It does not affect the setInterval being run.
-
-##### #on()
-```haskell
-on :: String event_name, (* -> void) -> UriMonitor
-```
-Listen for <<Events, events>>.
+* `intervalMs` The time between checks
 
 
 
-## Events
+## Types
+
+#### `Event`
 
 |===
 | event name | callback arguments | description
@@ -75,10 +43,6 @@ Listen for <<Events, events>>.
 | `disconnection` | `response :: Check_Result` | A check result that is a failure, and it is different than the last check
 |===
 
-
-
-## Types
-
 #### `CheckResult`
 
 `superagent` has two types of request errors: general IO and response errors in the 400 or 500 range. URI Monitor treats both as a check failure. Result can be one of three things:
@@ -88,9 +52,3 @@ Listen for <<Events, events>>.
 . If a failed request due to IO, then the link:http://visionmedia.github.io/superagent/#error-handling[`err`] as returned by `superagent`.
 
 . If a failed request due to 4xx/5xx range response, then the link:http://visionmedia.github.io/superagent/#error-handling[`response.error`] as provided by `superagent`.
-
-
-
-## Notes
-
-  - Enable debug mode with label `uri-monitor` using link:https://github.com/visionmedia/debug[debug].

@@ -1,107 +1,97 @@
+# coffeelint: disable=max_line_length
+
 uri = 'http://localhost:9333'
+isChange = F.propEq 'type', 'change'
+isCheck = F.propEq 'type', 'check'
+getIsResponsive = F.path(['data', 'isResponsive'])
+Server = (times = 1) ->
+  nock(uri).get('/').times(times).reply(200)
+
+
+
 
 
 
 describe 'uri-monitor', ->
-  @timeout 5000
-  @slow 5000
-  monitor = server = undefined
+  @slow 1000
 
   beforeEach ->
-    server = nock(uri).get('/').reply(200)
-    monitor = Monitor(uri, 200)
-
-  afterEach ->
-    monitor.stop()
-    server.done()
-    nock.cleanAll()
+    @monitor = Monitor(uri, 200)
+    @Monitor = -> Monitor(uri, 200)
 
 
 
-  describe '.start()', ->
+  describe '.observe()', ->
 
-    it 'begins the monitor', (done) ->
-      monitor.start().once 'check', -> done()
+    it 'starts the monitor, issuing HTTP GET requests against a given URI.', ->
+      server = Server()
 
-  describe '.check()', ->
-
-    it 'issues HTTP GET requests against a given uri.', (done) ->
-      monitor.start().once 'check', (is_connected)->
-        a is_connected
-        done()
-
-
-
-  describe '.stop()', ->
-
-    it 'immediately prevents any further events', (done) ->
-      did_events = 0
-
-      # Should only trigger once
-      monitor.start().on 'check', (is_connected)->
-        did_events++
-
-      setTimeout monitor.stop, 50
-
-      setTimeout (->
-        a.equal did_events, 1, 'no events fired after stop()'
-        done()
-      ), 1000
+      @monitor
+        .take 1
+        .map getIsResponsive
+        .observe a.eq true
+        .then server.done
 
 
 
-  describe 'on first check result', ->
+  describe 'the first check result causes four events', ->
 
-    it 'emits both "check" and "change"', (done)->
-      events = 0
-      monitor.start()
-      try_done = (is_connected)->
-        a is_connected
-        events += 1
-        if events is 2
-          done()
-      monitor.once 'check', try_done
-      monitor.once 'change', try_done
+    it 'can be check / pong / change / responsive', ->
+      server = Server()
+      events = ['check', 'pong', 'change', 'responsive']
 
-    it 'is_connected === true, if response within interval_ms', (done) ->
-      # clear/consume the initial mock server. It would
-      # be nice if nock let us cancel a mock but alas it does not.
-      monitor.start().once 'change', (is_connected)->
-        # Now there are no pending mocks
-        monitor_ = Monitor(uri, 200).start().once 'change', (is_connected)->
-          a !is_connected
-          monitor_.stop()
-          done()
+      @monitor
+        .take events.length
+        .observe (event) -> a.eq events.shift(), event.type
+        .then server.done
 
-    it 'is_connected === true, if response within interval_ms', (done) ->
-      monitor.start().once 'change', (is_connected)->
-        a is_connected, 'connected'
-        done()
+
+    it 'can be check / drop / change / unresponsive', ->
+      events = ['check', 'drop', 'change', 'unresponsive']
+
+      @monitor
+        .take events.length
+        .observe (event) -> a.eq events.shift(), event.type
 
 
 
-  describe 'on n check result', ->
+  describe 'the nth check result', ->
 
-    it 'is_connected === false if no server response within interval_ms', (done) ->
-      i = 0
-      exps = [true, true, false]
-      monitor.start().on 'check', (is_connected)->
-        a.equal is_connected, exps[i]
-        if i is 0
-          server = nock(uri).get('/').reply(200)
-        if i is 2
-          done()
-        i++
+    it 'can be check / pong without change events', ->
+      server = Server(2)
+      events = ['check', 'pong']
 
+      @monitor
+        .skip 4
+        .take events.length
+        .observe (event) -> a.eq events.shift(), event.type
+        .then server.done
 
-    it 'is_connected === true if no server response within interval_ms', (done) ->
-      nock.cleanAll()
-      i = 0
-      exps = [false, false, true]
-      monitor.start().on 'check', (is_connected)->
-        a.equal is_connected, exps[i]
-        if i is 1
-          server = nock(uri).get('/').reply(200)
-        if i is 2
-          done()
-        i++
+    it 'can be check / drop without change events', ->
+      events = ['check', 'drop']
+
+      @monitor
+        .skip 4
+        .take events.length
+        .observe (event) -> a.eq events.shift(), event.type
+
+    it 'can be check / drop / change / unresponsive', ->
+      server = Server(1)
+      events = ['check', 'drop', 'change', 'unresponsive']
+
+      @monitor
+        .skip 4
+        .take events.length
+        .observe (event) -> a.eq events.shift(), event.type
+        .then server.done
+
+    it 'can be check / pong / change / responsive', ->
+      events = ['check', 'pong', 'change', 'responsive']
+
+      P.delay(1).then => @server = Server()
+
+      @monitor
+        .skip 4
+        .take events.length
+        .observe (event) -> a.eq events.shift(), event.type
+        .then => @server.done()
