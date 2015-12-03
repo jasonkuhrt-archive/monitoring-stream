@@ -16,7 +16,7 @@ Server = (times = 1) ->
 describe 'uri-monitor', ->
   @slow 1000
 
-  beforeEach ->
+  before ->
     @monitor = Monitor.create(uri, 200)
 
 
