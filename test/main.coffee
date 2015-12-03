@@ -37,9 +37,9 @@ describe 'uri-monitor', ->
 
   describe 'the first check result causes four events', ->
 
-    it 'can be check / pong / change / responsive', ->
+    it 'can be check / change, where change is pong', ->
       server = Server()
-      events = [check, pong, change, responsive]
+      events = [check, change]
 
       @monitor
         .take events.length
@@ -47,8 +47,8 @@ describe 'uri-monitor', ->
         .then server.done
 
 
-    it 'can be check / drop / change / unresponsive', ->
-      events = [check, drop, change, unresponsive]
+    it 'can be check / change, where change is drop', ->
+      events = [check, change]
 
       @monitor
         .take events.length
@@ -58,41 +58,41 @@ describe 'uri-monitor', ->
 
   describe 'the nth check result', ->
 
-    it 'can be check / pong without change events', ->
+    it 'can be check, without change, in pong state', ->
       server = Server(2)
-      events = [check, pong]
+      events = [check]
 
       @monitor
-        .skip 4
+        .skip 2
         .take events.length
         .observe (event) -> a.eq events.shift(), event.type
         .then server.done
 
-    it 'can be check / drop without change events', ->
-      events = [check, drop]
+    it 'can be check, without change, in drop state ', ->
+      events = [check]
 
       @monitor
-        .skip 4
+        .skip 2
         .take events.length
         .observe (event) -> a.eq events.shift(), event.type
 
-    it 'can be check / drop / change / unresponsive', ->
+    it 'can be check / change, where change is drop', ->
       server = Server(1)
-      events = [check, drop, change, unresponsive]
+      events = [check, change]
 
       @monitor
-        .skip 4
+        .skip 2
         .take events.length
         .observe (event) -> a.eq events.shift(), event.type
         .then server.done
 
-    it 'can be check / pong / change / responsive', ->
-      events = [check, pong, change, responsive]
+    it 'can be check / change, where change is pong', ->
+      events = [check, change]
 
       P.delay(1).then => @server = Server()
 
       @monitor
-        .skip 4
+        .skip 2
         .take events.length
         .observe (event) -> a.eq events.shift(), event.type
         .then => @server.done()
