@@ -9,46 +9,108 @@ image:https://circleci.com/gh/jasonkuhrt/uri-monitor.svg?style=svg["Circle CI", 
 toc::[]
 
 
+
 ## Installation
 
 ```
-npm install uri-monitor
+npm install --save uri-monitor
+```
+
+
+
+## Example
+
+```js
+import Monitor from 'uri-monitor'
+
+Monitor
+.create('https://foo.io', 1500)
+.downs
+.observe(() => console.warn('Service Down'))
 ```
 
 
 
 ## API
 
-### Constructor
+### `create`
+
 ```haskell
-UriMonitor :: String, Int -> Stream Event
+String, Maybe Integer -> Stream MonitorEvent
 ```
 
-* `uri` The URI to monitor. Plain GET requests will be made against this.
-* `intervalMs` The time between checks
+* `URI` The URI that periodic GET requests will be made to.
+
+* `IntervalMS` Optional. Defaults to `1000`. The time between each GET _request_. Note this is _not_ the time between a response and the next _request_. In other words requests are staggered evenly irrespective of the response time. For example:
++
+```
+--- = Time    Q = Request    R = Response
+
+Q1----R1-Q2-R2----Q3--R3---Q4   ...
+^        ^        ^        ^    <== See, periodic
+```
++
+Requests are configured to timeout at the `IntervalMS` so that there is only ever one pair of request / pending-response at any given time.
+
+The following will cause a request to be considered a failure:
+
+* Request is not responded to within `IntervalMS`
+
+### Sugar
+
+The returned `Stream` instance is monkey patched with filtered variants for common patterns. They are:
+
+#### `.pongs`
+
+<<CheckEvent, `CheckEvents`>> where `isResponsive` is `true`.
+
+#### `.drops`
+
+<<CheckEvent, `CheckEvents`>> where `isResponsive` is `false`.
+
+#### `.ups`
+
+<<ChangedEvent, `ChangedEvents`>> where `isResponsive` is `true`.
+
+#### `.downs`
+
+<<ChangedEvent, `ChangedEvents`>> where `isResponsive` is `false`.
 
 
 
 ## Types
 
-#### `Event`
+#### `Stream`
 
-|===
-| event name | callback arguments | description
-| `check`  | `is_connected :: Boolean`, `response :: Check_Result` | A check result
-| `change` | `is_connected :: Boolean`, `response :: Check_Result` | A check result, and it is different than the last check
-| `pong` | `response :: Check_Result` | A check result that is a success
-| `drop` | `response :: Check_Result` | A check result that is a failure
-| `connection` | `response :: Check_Result` | A check result that is a success, and it is different than the last check
-| `disconnection` | `response :: Check_Result` | A check result that is a failure, and it is different than the last check
-|===
+An instance of link:https://github.com/cujojs/most/blob/master/docs/api.md[`most`].
 
-#### `CheckResult`
+#### `MonitorEvent`
 
-`superagent` has two types of request errors: general IO and response errors in the 400 or 500 range. URI Monitor treats both as a check failure. Result can be one of three things:
+Base event type that all events emitted by an instance of monitor extend.
 
-. If a successful request then the `superagent` link:http://visionmedia.github.io/superagent/#response-properties[`response`] object.
+```yaml
+type : String
+data : Map
+```
 
-. If a failed request due to IO, then the link:http://visionmedia.github.io/superagent/#error-handling[`err`] as returned by `superagent`.
+#### `CheckedEvent`
 
-. If a failed request due to 4xx/5xx range response, then the link:http://visionmedia.github.io/superagent/#error-handling[`response.error`] as provided by `superagent`.
+Emitted whenever a request is made to the endpoint being monitored. `result` is `SuperagentError` if `isResponsive` is `false` otherwise `SuperagentResponse`.
+
+```yaml
+type: "checked"
+data:
+  isResponsive: Bool
+  result: SuperagentError | SuperagentResponse
+```
+
+#### `ChangedEvent`
+
+Emitted whenever a ping result is different than the previous one. `result` is `SuperagentError` if `isResponsive` is `false` otherwise `SuperagentResponse`.
+
+```yaml
+type: "changed"
+data:
+  isResponsive: Bool
+  result: SuperagentError | SuperagentResponse
+```
