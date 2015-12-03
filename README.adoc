@@ -1,6 +1,6 @@
 :toc: macro
 :toc-title:
-:toc-levels: 9
+:toclevels: 9
 
 # URI Monitor
 
