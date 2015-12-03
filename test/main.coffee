@@ -1,8 +1,9 @@
 # coffeelint: disable=max_line_length
 
+{ change, check, responsive, unresponsive, pong, drop } = Monitor.eventNames
 uri = 'http://localhost:9333'
-isChange = F.propEq 'type', 'change'
-isCheck = F.propEq 'type', 'check'
+isChange = F.propEq 'type', change
+isCheck = F.propEq 'type', check
 getIsResponsive = F.path(['data', 'isResponsive'])
 Server = (times = 1) ->
   nock(uri).get('/').times(times).reply(200)
@@ -16,8 +17,8 @@ describe 'uri-monitor', ->
   @slow 1000
 
   beforeEach ->
-    @monitor = Monitor(uri, 200)
-    @Monitor = -> Monitor(uri, 200)
+    @monitor = Monitor.create(uri, 200)
+    @Monitor = -> Monitor.create(uri, 200)
 
 
 
@@ -38,7 +39,7 @@ describe 'uri-monitor', ->
 
     it 'can be check / pong / change / responsive', ->
       server = Server()
-      events = ['check', 'pong', 'change', 'responsive']
+      events = [check, pong, change, responsive]
 
       @monitor
         .take events.length
@@ -47,7 +48,7 @@ describe 'uri-monitor', ->
 
 
     it 'can be check / drop / change / unresponsive', ->
-      events = ['check', 'drop', 'change', 'unresponsive']
+      events = [check, drop, change, unresponsive]
 
       @monitor
         .take events.length
@@ -59,7 +60,7 @@ describe 'uri-monitor', ->
 
     it 'can be check / pong without change events', ->
       server = Server(2)
-      events = ['check', 'pong']
+      events = [check, pong]
 
       @monitor
         .skip 4
@@ -68,7 +69,7 @@ describe 'uri-monitor', ->
         .then server.done
 
     it 'can be check / drop without change events', ->
-      events = ['check', 'drop']
+      events = [check, drop]
 
       @monitor
         .skip 4
@@ -77,7 +78,7 @@ describe 'uri-monitor', ->
 
     it 'can be check / drop / change / unresponsive', ->
       server = Server(1)
-      events = ['check', 'drop', 'change', 'unresponsive']
+      events = [check, drop, change, unresponsive]
 
       @monitor
         .skip 4
@@ -86,7 +87,7 @@ describe 'uri-monitor', ->
         .then server.done
 
     it 'can be check / pong / change / responsive', ->
-      events = ['check', 'pong', 'change', 'responsive']
+      events = [check, pong, change, responsive]
 
       P.delay(1).then => @server = Server()
 
