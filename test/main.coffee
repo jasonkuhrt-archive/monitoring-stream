@@ -1,12 +1,13 @@
 # coffeelint: disable=max_line_length
 
 { change, check, responsive, unresponsive, pong, drop } = Monitor.eventNames
+
 uri = 'http://localhost:9333'
-isChange = F.propEq 'type', change
-isCheck = F.propEq 'type', check
-getIsResponsive = F.path(['data', 'isResponsive'])
+
 Server = (times = 1) ->
   nock(uri).get('/').times(times).reply(200)
+
+monitor = Monitor.create(uri, 200)
 
 
 
@@ -16,19 +17,14 @@ Server = (times = 1) ->
 describe 'uri-monitor', ->
   @slow 1000
 
-  before ->
-    @monitor = Monitor.create(uri, 200)
-
-
-
   describe '.observe()', ->
 
     it 'starts the monitor, issuing HTTP GET requests against a given URI.', ->
       server = Server()
 
-      @monitor
+      monitor
         .take 1
-        .map getIsResponsive
+        .map ({ data: { isResponsive }}) -> isResponsive
         .observe a.eq true
         .then server.done
 
@@ -40,18 +36,18 @@ describe 'uri-monitor', ->
       server = Server()
       events = [check, change]
 
-      @monitor
+      monitor
         .take events.length
-        .observe (event) -> a.eq events.shift(), event.type
+        .observe ({ type }) -> a.eq events.shift(), type
         .then server.done
 
 
     it 'can be check / change, where change is drop', ->
       events = [check, change]
 
-      @monitor
+      monitor
         .take events.length
-        .observe (event) -> a.eq events.shift(), event.type
+        .observe ({ type }) -> a.eq events.shift(), type
 
 
 
@@ -61,28 +57,28 @@ describe 'uri-monitor', ->
       server = Server(2)
       events = [check]
 
-      @monitor
+      monitor
         .skip 2
         .take events.length
-        .observe (event) -> a.eq events.shift(), event.type
+        .observe ({ type }) -> a.eq events.shift(), type
         .then server.done
 
     it 'can be check, without change, in drop state ', ->
       events = [check]
 
-      @monitor
+      monitor
         .skip 2
         .take events.length
-        .observe (event) -> a.eq events.shift(), event.type
+        .observe ({ type }) -> a.eq events.shift(), type
 
     it 'can be check / change, where change is drop', ->
       server = Server(1)
       events = [check, change]
 
-      @monitor
+      monitor
         .skip 2
         .take events.length
-        .observe (event) -> a.eq events.shift(), event.type
+        .observe ({ type }) -> a.eq events.shift(), type
         .then server.done
 
     it 'can be check / change, where change is pong', ->
@@ -90,8 +86,58 @@ describe 'uri-monitor', ->
 
       P.delay(1).then => @server = Server()
 
-      @monitor
+      monitor
         .skip 2
         .take events.length
-        .observe (event) -> a.eq events.shift(), event.type
+        .observe ({ type }) -> a.eq events.shift(), type
         .then => @server.done()
+
+
+
+  describe 'sugar', ->
+
+    it '.drops filters for checks that drop', ->
+      events = [check, check, check]
+
+      monitor
+      .drops
+      .take events.length
+      .observe ({ type, data: { isResponsive } }) ->
+        a.eq events.shift(), type
+        a not isResponsive, 'is drop'
+
+    it '.pongs filters for checks that pong', ->
+      server = Server(3)
+      events = [check, check, check]
+
+      monitor
+      .pongs
+      .take events.length
+      .observe ({ type, data: { isResponsive } }) ->
+        a.eq events.shift(), type
+        a isResponsive, 'is pong'
+      .then server.done
+
+    it '.downs filters for changes into responsive state', ->
+      server = Server(1)
+      events = [change]
+
+      monitor
+      .downs
+      .take events.length
+      .observe ({ type, data: { isResponsive } }) ->
+        a.eq events.shift(), type
+        a not isResponsive, 'is unresponsive state'
+      .then server.done
+
+    it '.ups filters for changes into responsive state', ->
+      P.delay(300).then => @server = Server(1)
+      events = [change]
+
+      monitor
+      .ups
+      .take events.length
+      .observe ({ type, data: { isResponsive } }) ->
+        a.eq events.shift(), type
+        a isResponsive, 'is responsive state'
+      .then => @server.done
