@@ -18,7 +18,6 @@ describe 'uri-monitor', ->
 
   beforeEach ->
     @monitor = Monitor.create(uri, 200)
-    @Monitor = -> Monitor.create(uri, 200)
 
 
 
