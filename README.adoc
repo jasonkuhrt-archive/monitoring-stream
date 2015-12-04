@@ -18,63 +18,100 @@ npm install --save uri-monitor
 
 
 
-## Example
+## Examples
 
+Basis for following examples:
 ```js
 import Monitor from 'uri-monitor'
 
-Monitor
-.create('https://foo.io', 1500)
+const monitor = Monitor.create('https://foo.io', 1500)
+```
+
+Monitoring outages:
+
+```js
+const serviceChanges = monitor.filter(({ type }) => type === 'change')
+
+serviceChanges
+.filter({ data: { isResponsive }} => !isResponsive)
+.observe(() => console.warn('Service Down!'))
+
+serviceChanges
+.filter({ data: { isResponsive }} => isResponsive)
+.observe(() => console.warn('Service Up!'))
+```
+
+Monitoring outages via <<stream-sugar, `Stream` sugar>>:
+
+```js
+monitor
 .downs
-.observe(() => console.warn('Service Down'))
+.observe(() => console.warn('Service Down!'))
+
+serviceChanges
+.ups
+.observe(() => console.warn('Service Up!'))
 ```
 
 
 
 ## API
 
-### `create`
+### `.create`
 
 ```haskell
-String, Maybe Integer -> Stream MonitorEvent
+create :: String, Maybe Integer -> Stream MonitorEvent
+--        uri     interval
 ```
 
-* `URI` The URI that periodic GET requests will be made to.
+* `uri` The URI that periodic GET requests will be made to.
 
-* `IntervalMS` Optional. Defaults to `1000`. The time between each GET _request_. Note this is _not_ the time between a response and the next _request_. In other words requests are staggered evenly irrespective of the response time. For example:
+* `interval` Optional, defaults to `1000`. The milliseconds between each request. Note this is _not_ the time between a response and the next request because requests are evenly staggered. For example:
 +
 ```
 --- = Time    Q = Request    R = Response
 
-Q1----R1-Q2-R2----Q3--R3---Q4   ...
-^        ^        ^        ^    <== See, periodic
+Q1----R1-Q2-R2----Q3--R3---Q4--
+^        ^        ^        ^    <== Evenly staggered
 ```
 +
-Requests are configured to timeout at the `IntervalMS` so that there is only ever one pair of request / pending-response at any given time.
+A response cannot temporally leak into the next request because each request is configured to timeout within the `interval`.
 
 The following will cause a request to be considered a failure:
 
 * Request is not responded to within `IntervalMS`
 
-### Sugar
+### Convenience streams on `Stream`
 
-The returned `Stream` instance is monkey patched with filtered variants for common patterns. They are:
+The <<Stream,`Stream`>> returned by <<create, `create`>> is monkey patched with filtered variants for common patterns. They are:
 
 #### `.pongs`
 
-<<CheckEvent, `CheckEvents`>> where `isResponsive` is `true`.
+```haskell
+pongs :: Stream CheckedEvent
+```
+<<CheckedEvent, `CheckedEvents`>> where `data.isResponsive` is `true`.
 
 #### `.drops`
 
-<<CheckEvent, `CheckEvents`>> where `isResponsive` is `false`.
+```haskell
+drops :: Stream CheckedEvent
+```
+<<CheckedEvent, `CheckedEvents`>> where `data.isResponsive` is `false`.
 
 #### `.ups`
 
-<<ChangedEvent, `ChangedEvents`>> where `isResponsive` is `true`.
+```haskell
+ups :: Stream ChangedEvent
+```
+<<ChangedEvent, `ChangedEvents`>> where `data.isResponsive` is `true`.
 
 #### `.downs`
 
-<<ChangedEvent, `ChangedEvents`>> where `isResponsive` is `false`.
+```haskell
+ups :: Stream ChangedEvent
+```
+<<ChangedEvent, `ChangedEvents`>> where `data.isResponsive` is `false`.
 
 
 
@@ -86,16 +123,18 @@ An instance of link:https://github.com/cujojs/most/blob/master/docs/api.md[`most
 
 #### `MonitorEvent`
 
-Base event type that all events emitted by an instance of monitor extend.
+Base interface that all emitted events implement. `result` is `SuperagentError` if `isResponsive` is `false` otherwise `SuperagentResponse`.
 
 ```yaml
 type : String
-data : Map
+data :
+  isResponsive: Bool
+  result: SuperagentError | SuperagentResponse
 ```
 
-#### `CheckedEvent`
+##### `CheckedEvent`
 
-Emitted whenever a request is made to the endpoint being monitored. `result` is `SuperagentError` if `isResponsive` is `false` otherwise `SuperagentResponse`.
+Emitted every time a result of a request is available.
 
 ```yaml
 type: "checked"
@@ -104,9 +143,9 @@ data:
   result: SuperagentError | SuperagentResponse
 ```
 
-#### `ChangedEvent`
+##### `ChangedEvent`
 
-Emitted whenever a ping result is different than the previous one. `result` is `SuperagentError` if `isResponsive` is `false` otherwise `SuperagentResponse`.
+Emitted every time a result of a request has a different `isResponsive` value than the previous result.
 
 ```yaml
 type: "changed"
