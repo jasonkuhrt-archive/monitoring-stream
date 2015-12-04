@@ -85,7 +85,7 @@ The following will cause the result of a request to be considered a failure:
 * Response HTTP Status Code is `>= 400`.
 * Any general HTTP Error (e.g. a client-side CORS error)
 
-In all these cases `data.isResponsive` will be `false` and `result` will contain the error.
+In all of these cases `data.isResponsive` will be `false` and `data.result` will be either a <<requesterror, `RequestError`>> or <<networkerror, `NetworkError`>>.
 
 #### Convenience streams on `Stream`
 
@@ -129,7 +129,7 @@ An instance of link:https://github.com/cujojs/most/blob/master/docs/api.md[`most
 
 #### `MonitorEvent`
 
-Base interface that all emitted events implement. If `isResponsive` is false then `result` is either a `RequestError` or `NetworkError` otherwise `result` is a `Response`.
+Base interface that all emitted events implement. If `isResponsive` is false then `result` is either a <<requesterror, `RequestError`>> or <<networkerror, `NetworkError`>> otherwise `result` is a <<response, `Response`>>.
 
 ```yaml
 type : String
@@ -160,13 +160,13 @@ data:
   result: CheckResult
 ```
 
-### CheckResult
+### `CheckResult`
 
 ```yaml
 RequestError | NetworkError | Response
 ```
 
-### Response
+### `Response`
 
 A link:https://visionmedia.github.io/superagent/#response-properties[Superagent Response].
 
