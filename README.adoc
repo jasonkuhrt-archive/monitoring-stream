@@ -34,7 +34,7 @@ const serviceChanges = monitor.filter(({ type }) => type === 'change')
 
 serviceChanges
 .filter({ data: { isResponsive }} => !isResponsive)
-.observe(({ data: { result }}) => console.warn('Service Down!', result.error))
+.observe(({ data: { result }}) => console.warn('Service Down!', result))
 
 serviceChanges
 .filter({ data: { isResponsive }} => isResponsive)
