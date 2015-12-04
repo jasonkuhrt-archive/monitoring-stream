@@ -7,6 +7,9 @@ uri = 'http://localhost:9333'
 Server = (times = 1) ->
   nock(uri).get('/').times(times).reply(200)
 
+ServerError = (times = 1) ->
+  nock(uri).get('/').times(times).reply(500, { message: "Exceeded capacity!" })
+
 monitor = Monitor.create(uri, 200)
 
 
@@ -141,3 +144,30 @@ describe 'uri-monitor', ->
         a.eq events.shift(), type
         a isResponsive, 'is responsive state'
       .then => @server.done
+
+
+
+describe 'request failures', ->
+
+  it 'on 500 response .result is a RequestError', ->
+    server = ServerError()
+
+    monitor
+    .take 1
+    .tap (d) -> console.log d.data.result.res
+    .observe ({ data: { result }}) ->
+      a.isString result.message
+      a.isNumber result.status
+      a.isObject result.body
+      a.isObject result.res
+    .then server.done
+
+
+  it 'on ENOTFOUND .result is a NetworkError', ->
+
+    Monitor
+    .create('http://92hgd76120wm10.com', 200)
+    .take 1
+    .observe ({ data: { result }}) ->
+      a.isString result.message
+      a.eq 'object', typeof result.originalError
