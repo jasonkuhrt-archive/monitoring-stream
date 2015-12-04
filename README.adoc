@@ -41,7 +41,7 @@ serviceChanges
 .observe(() => console.warn('Service Up!'))
 ```
 
-Monitoring outages via <<stream-sugar, `Stream` sugar>>:
+Monitoring outages via <<convenience-streams-on-stream, `Stream` sugar>>:
 
 ```js
 monitor
@@ -79,39 +79,39 @@ A response cannot temporally leak into the next request because each request is 
 
 The following will cause a request to be considered a failure:
 
-* Request is not responded to within `IntervalMS`
+* Request is not responded to within `interval`
 
 ### Convenience streams on `Stream`
 
-The <<Stream,`Stream`>> returned by <<create, `create`>> is monkey patched with filtered variants for common patterns. They are:
+The <<stream,`Stream`>> returned by <<create, `create`>> is monkey patched with filtered variants for common patterns. They are:
 
 #### `.pongs`
 
 ```haskell
 pongs :: Stream CheckedEvent
 ```
-<<CheckedEvent, `CheckedEvents`>> where `data.isResponsive` is `true`.
+<<checkedevent, `CheckedEvents`>> where `data.isResponsive` is `true`.
 
 #### `.drops`
 
 ```haskell
 drops :: Stream CheckedEvent
 ```
-<<CheckedEvent, `CheckedEvents`>> where `data.isResponsive` is `false`.
+<<checkedevent, `CheckedEvents`>> where `data.isResponsive` is `false`.
 
 #### `.ups`
 
 ```haskell
 ups :: Stream ChangedEvent
 ```
-<<ChangedEvent, `ChangedEvents`>> where `data.isResponsive` is `true`.
+<<changedevent, `ChangedEvents`>> where `data.isResponsive` is `true`.
 
 #### `.downs`
 
 ```haskell
 ups :: Stream ChangedEvent
 ```
-<<ChangedEvent, `ChangedEvents`>> where `data.isResponsive` is `false`.
+<<changedevent, `ChangedEvents`>> where `data.isResponsive` is `false`.
 
 
 
