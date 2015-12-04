@@ -51,7 +51,7 @@
     ]
   },
   "babel": {
-    "presets": "es2015"
+    "presets": ["es2015"]
   },
   "bugs": {
     "url": "https://github.com/jasonkuhrt/uri-monitor/issues"
