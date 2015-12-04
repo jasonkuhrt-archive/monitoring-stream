@@ -154,7 +154,6 @@ describe 'request failures', ->
 
     monitor
     .take 1
-    .tap (d) -> console.log d.data.result.res
     .observe ({ data: { result }}) ->
       a.isString result.message
       a.isNumber result.status
