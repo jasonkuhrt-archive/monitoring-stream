@@ -29,7 +29,7 @@ describe 'uri-monitor', ->
         .take 1
         .map ({ data: { isResponsive }}) -> isResponsive
         .observe a.eq true
-        .then server.done
+        .then server.done.bind(server)
 
 
 
@@ -42,7 +42,7 @@ describe 'uri-monitor', ->
       monitor
         .take events.length
         .observe ({ type }) -> a.eq events.shift(), type
-        .then server.done
+        .then server.done.bind(server)
 
 
     it 'can be check / change, where change is drop', ->
@@ -64,7 +64,7 @@ describe 'uri-monitor', ->
         .skip 2
         .take events.length
         .observe ({ type }) -> a.eq events.shift(), type
-        .then server.done
+        .then server.done.bind(server)
 
     it 'can be check, without change, in drop state ', ->
       events = [check]
@@ -82,18 +82,19 @@ describe 'uri-monitor', ->
         .skip 2
         .take events.length
         .observe ({ type }) -> a.eq events.shift(), type
-        .then server.done
+        .then server.done.bind(server)
 
     it 'can be check / change, where change is pong', ->
       events = [check, change]
+      server = undefined
 
-      P.delay(1).then => @server = Server()
+      P.delay(1).then -> server = Server()
 
       monitor
         .skip 2
         .take events.length
         .observe ({ type }) -> a.eq events.shift(), type
-        .then => @server.done()
+        .then -> server.done()
 
 
 
@@ -119,7 +120,7 @@ describe 'uri-monitor', ->
       .observe ({ type, data: { isResponsive } }) ->
         a.eq events.shift(), type
         a isResponsive, 'is pong'
-      .then server.done
+      .then server.done.bind(server)
 
     it '.downs filters for changes into responsive state', ->
       server = Server(1)
@@ -131,11 +132,12 @@ describe 'uri-monitor', ->
       .observe ({ type, data: { isResponsive } }) ->
         a.eq events.shift(), type
         a not isResponsive, 'is unresponsive state'
-      .then server.done
+      .then server.done.bind(server)
 
     it '.ups filters for changes into responsive state', ->
-      P.delay(300).then => @server = Server(1)
       events = [change]
+      server = undefined
+      P.delay(300).then -> server = Server(1)
 
       monitor
       .ups
@@ -143,7 +145,7 @@ describe 'uri-monitor', ->
       .observe ({ type, data: { isResponsive } }) ->
         a.eq events.shift(), type
         a isResponsive, 'is responsive state'
-      .then => @server.done
+      .then -> server.done()
 
 
 
@@ -159,7 +161,7 @@ describe 'request failures', ->
       a.isNumber result.status
       a.isObject result.body
       a.isObject result.res
-    .then server.done
+    .then server.done.bind(server)
 
 
   it 'on ENOTFOUND .result is a NetworkError', ->
