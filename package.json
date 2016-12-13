@@ -3,7 +3,7 @@
   "scripts": {
     "dev": "mocha --compilers 'coffee:coffee-script/register' --reporter spec --watch",
     "test": "mocha --compilers 'coffee:coffee-script/register'",
-    "build": "rm -rf build && babel --out-dir build lib",
+    "build": "rm -rf build && babel --out-dir build source",
     "postversion": "git push && git push --tags && npm publish",
     "prepublish": "npm run build"
   },
@@ -30,7 +30,7 @@
     "test": "test"
   },
   "version": "0.5.0-0",
-  "main": "lib/main.js",
+  "main": "source/main.js",
   "description": "Monitor a URI's connectivity",
   "devDependencies": {
     "babel-cli": "^6.3.13",
