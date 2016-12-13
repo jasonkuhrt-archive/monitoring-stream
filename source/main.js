@@ -28,18 +28,14 @@ const ChangeEvent = Event(eventNames.change)
 //    ping :: PingSettings -> Promise PingResultEvent
 const ping = (config) => (
   HTTPClient(config)
-  .then((result) => (
-    Event("response")({
-      isResponsive: true,
-      result
-    })
-  ))
-  .catch((error) => (
-    Event("response")({
-      isResponsive: false,
-      result: error
-    })
-  ))
+  .then((result) => ({
+    isResponsive: true,
+    result
+  }))
+  .catch((error) => ({
+    isResponsive: false,
+    result: error
+  }))
 )
 
 
@@ -53,21 +49,19 @@ const create = (uri, checkIntervalMs = 1000) => {
       cancelToken: CancelToken.source(),
     }
 
-    const onPingResult = ({ data }) => {
-      add(CheckEvent(data))
-      if (state.wasResponsive !== data.isResponsive) {
-        add(ChangeEvent(data))
-        state.wasResponsive = data.isResponsive
-      }
-    }
-
     const doPing = () => {
-      state.pinging = ping({
+      ping({
         url: uri,
         cancelToken: state.cancelToken.token,
         timeout: checkIntervalMs,
       })
-      state.pinging.then(onPingResult)
+      .then((result) => {
+        add(CheckEvent(result))
+        if (state.wasResponsive !== result.isResponsive) {
+          add(ChangeEvent(result))
+          state.wasResponsive = result.isResponsive
+        }
+      })
     }
 
     FRP
