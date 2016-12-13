@@ -8,10 +8,13 @@ Server = (times = 1) ->
   nock(uri).get('/').times(times).reply(200)
 
 ServerError =
-  create: (times = 1) ->
-    nock(uri).get('/').times(times).reply(500, ServerError.returnData)
   returnData:
     message: "Exceeded capacity!"
+  create: (times = 1) ->
+    nock(uri)
+    .get('/')
+    .times(times)
+    .reply(500, ServerError.returnData)
 
 monitor = Monitor.create(uri, 200)
 
@@ -30,7 +33,7 @@ describe 'uri-monitor', ->
 
       monitor
         .take 1
-        .map ({ data: { isResponsive }}) -> isResponsive
+        .map F.path(['data', 'isResponsive'])
         .observe a.eq true
         .then server.done.bind(server)
 
@@ -163,7 +166,7 @@ describe 'request failures', ->
       a.instanceOf result, Error
       a.isObject result.response
       a.isNumber result.response.status
-      a.eq serverError.returnData, result.response.data
+      a.eq ServerError.returnData, result.response.data
     .then server.done.bind(server)
 
 
