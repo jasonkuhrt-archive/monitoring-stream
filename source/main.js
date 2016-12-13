@@ -1,6 +1,6 @@
-import FRP from "most"
+import * as FRP from "most"
+import { create as createStream } from "@most/create"
 import HTTPClient, { CancelToken } from "axios"
-
 
 
 /* Event Constructor */
@@ -42,7 +42,7 @@ const ping = (config) => (
 
 //    create :: String, Maybe Integer -> UriMonitor
 const create = (uri, checkIntervalMs = 1000) => {
-  const stream = FRP.create((add) => {
+  const stream = createStream((add) => {
 
     const state = {
       wasResponsive: null,
