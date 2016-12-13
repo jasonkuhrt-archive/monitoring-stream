@@ -21,6 +21,7 @@ npm install --save uri-monitor
 ## Examples
 
 Basis for following examples:
+
 ```js
 import Monitor from 'uri-monitor'
 
@@ -84,8 +85,9 @@ The following will cause the result of a request to be considered a failure:
 * Request is not responded to within `interval`
 * Response HTTP Status Code is `>= 400`.
 * Any general HTTP Error (e.g. a client-side CORS error)
+* Any general Network Error (e.g. `ENOTFOUND` host)
 
-In all of these cases `data.isResponsive` will be `false` and `data.result` will be either a <<requesterror, `RequestError`>> or <<networkerror, `NetworkError`>>.
+In all of these cases `data.isResponsive` will be `false` and `data.result` will be a <<requesterror, `RequestError`>>.
 
 #### Convenience streams on `Stream`
 
@@ -129,7 +131,7 @@ An instance of link:https://github.com/cujojs/most/blob/master/docs/api.md[`most
 
 #### `MonitorEvent`
 
-Base interface that all emitted events implement. If `isResponsive` is false then `result` is either a <<requesterror, `RequestError`>> or <<networkerror, `NetworkError`>> otherwise `result` is a <<response, `Response`>>.
+Base interface that all emitted events implement. If `isResponsive` is false then `result` is a <<requesterror, `RequestError`>> otherwise `result` is a <<response, `Response`>>.
 
 ```yaml
 type : String
@@ -168,20 +170,8 @@ RequestError | NetworkError | Response
 
 ### `Response`
 
-A link:https://visionmedia.github.io/superagent/#response-properties[Superagent Response].
+An https://github.com/mzabriskie/axios#response-schema[`AxiosResponse`].
 
 ### `RequestError`
 
-```yaml
-message: String
-status: Integer
-body: Object
-res: Response
-```
-
-### `NetworkError`
-
-```yaml
-message: String
-originalError: Object
-```
+An https://github.com/mzabriskie/axios#handling-errors[`AxiosRequestError`].

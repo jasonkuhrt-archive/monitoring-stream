@@ -7,8 +7,11 @@ uri = 'http://localhost:9333'
 Server = (times = 1) ->
   nock(uri).get('/').times(times).reply(200)
 
-ServerError = (times = 1) ->
-  nock(uri).get('/').times(times).reply(500, { message: "Exceeded capacity!" })
+ServerError =
+  create: (times = 1) ->
+    nock(uri).get('/').times(times).reply(500, ServerError.returnData)
+  returnData:
+    message: "Exceeded capacity!"
 
 monitor = Monitor.create(uri, 200)
 
@@ -151,24 +154,25 @@ describe 'uri-monitor', ->
 
 describe 'request failures', ->
 
-  it 'on 500 response .result is a RequestError', ->
-    server = ServerError()
+  it 'on 500 response .result is an error with .response', ->
+    server = ServerError.create()
 
     monitor
     .take 1
     .observe ({ data: { result }}) ->
-      a.isString result.message
-      a.isNumber result.status
-      a.isObject result.body
-      a.isObject result.res
+      a.instanceOf result, Error
+      a.isObject result.response
+      a.isNumber result.response.status
+      a.eq serverError.returnData, result.response.data
     .then server.done.bind(server)
 
 
-  it 'on ENOTFOUND .result is a NetworkError', ->
+  it 'on ENOTFOUND .result is an error at the network level', ->
 
     Monitor
     .create('http://92hgd76120wm10.com', 200)
     .take 1
     .observe ({ data: { result }}) ->
-      a.isString result.message
-      a.eq 'object', typeof result.originalError
+      a.instanceOf result, Error
+      a.eq 'ENOTFOUND', result.code,
+      a.eq undefined, result.response

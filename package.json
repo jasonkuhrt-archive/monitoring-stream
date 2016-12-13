@@ -8,10 +8,9 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
+    "axios": "^0.15.3",
     "bluebird": "^3.4.6",
-    "most": "^0.16.0",
-    "superagent": "^3.1.0",
-    "superagent-bluebird-promise": "^4.1.0"
+    "most": "^0.16.0"
   },
   "repository": {
     "type": "git",
