@@ -2,6 +2,7 @@ import * as FRP from "most"
 import { ping } from "./Ping"
 
 
+
 const eventTypeUpdater = (type) => (event) => (
   Object.assign({}, event, {
     type,
@@ -16,7 +17,6 @@ const eventNames = {
   down: "down",
   up: "up",
 }
-
 
 const CheckEvent = (data) => ({
   type: eventNames.check,
