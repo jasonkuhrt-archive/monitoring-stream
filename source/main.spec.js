@@ -3,24 +3,37 @@ import nock from "nock"
 import Monitor from "./main"
 const expect = global.expect
 
-const uri = "http://localhost:9333"
 
-const createIntercept = (times) =>
-  nock(uri).get("/").times(times).reply(200)
+const fooURI = "https://foo.bar"
+
+const createIntercept = (times) => {
+  const uri = "http://localhost:9333" // TODO Randomize
+  const intercept = nock(uri).get("/").times(times).reply(200)
+  return {
+    uri,
+    intercept,
+  }
+}
 
 
 
-let intercept
-
-beforeEach(() => {
-  intercept = createIntercept(1)
+it(".create returns an observable", () => {
+  const monitor = Monitor.create(fooURI, 200)
+  expect(typeof monitor.observe).toEqual("function")
 })
 
-it(".observe starts the monitor", () => (
-  Monitor
-  .create(uri, 200)
-  .take(1)
-  .map(F.path([ "data", "isResponsive" ]))
-  .observe((value) => expect(value).toEqual(true))
-  .then(() => intercept.done())
-))
+it("observing the monitor starts it", () => {
+  Monitor.create(fooURI, 200).take(1).drain()
+})
+
+it(".observe starts the monitor", () => {
+  const { intercept, uri } = createIntercept(1)
+  return (
+    Monitor
+    .create(uri, 200)
+    .take(1)
+    .map(F.path([ "data", "isResponsive" ]))
+    .observe((value) => expect(value).toEqual(true))
+    .then(() => intercept.done())
+  )
+})
