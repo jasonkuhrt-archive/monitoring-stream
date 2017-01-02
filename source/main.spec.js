@@ -26,14 +26,13 @@ it("observing the monitor starts it", () => {
   Monitor.create(fooURI, 200).take(1).drain()
 })
 
-it(".observe starts the monitor", () => {
+it("monitor runs HTTP requets", () => {
   const { intercept, uri } = createIntercept(1)
   return (
     Monitor
     .create(uri, 200)
     .take(1)
-    .map(F.path([ "data", "isResponsive" ]))
-    .observe((value) => expect(value).toEqual(true))
+    .drain()
     .then(() => intercept.done())
   )
 })
