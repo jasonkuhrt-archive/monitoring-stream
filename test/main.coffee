@@ -18,6 +18,7 @@ ServerError =
 
 monitor = Monitor.create(uri, 200)
 
+accumulate = (acc, x) -> acc.concat([x])
 
 
 
@@ -41,119 +42,118 @@ describe 'uri-monitor', ->
 
   describe 'the first check result causes four events', ->
 
-    it 'can be check / change, where change is pong', ->
-      server = Server()
-      events = [check, change]
+    it 'init -> up', ->
+      server = Server 1
 
-      monitor
-        .take events.length
-        .observe ({ type }) -> a.eq events.shift(), type
-        .then server.done.bind(server)
+      Monitor
+      .create uri, 200
+      .takeUntil FRP.fromPromise(P.delay(200 - (200 / 2)))
+      .map F.path(["type"])
+      .reduce accumulate, []
+      .then a.eq ["check", "pong", "change", "up"]
+      .then server.done.bind(server)
 
 
-    it 'can be check / change, where change is drop', ->
-      events = [check, change]
-
-      monitor
-        .take events.length
-        .observe ({ type }) -> a.eq events.shift(), type
+    it 'init -> down', ->
+      Monitor
+      .create uri, 200
+      .takeUntil FRP.fromPromise(P.delay(200 - (200 / 2)))
+      .map F.path(["type"])
+      .reduce accumulate, []
+      .then a.eq ["check", "drop", "change", "down"]
 
 
 
   describe 'the nth check result', ->
 
-    it 'can be check, without change, in pong state', ->
-      server = Server(2)
-      events = [check]
+    it 'up -> up', ->
+      server = Server 2
 
-      monitor
-        .skip 2
-        .take events.length
-        .observe ({ type }) -> a.eq events.shift(), type
-        .then server.done.bind(server)
+      Monitor
+      .create uri, 200
+      .takeUntil FRP.fromPromise(P.delay(400 - (200 / 2)))
+      .map F.path(["type"])
+      .skip 4
+      .reduce accumulate, []
+      .then a.eq ["check", "pong"]
+      .then server.done.bind(server)
 
-    it 'can be check, without change, in drop state ', ->
-      events = [check]
+    it 'down -> down', ->
+      Monitor
+      .create uri, 200
+      .takeUntil FRP.fromPromise(P.delay(400 - (200 / 2)))
+      .map F.path(["type"])
+      .skip 4
+      .reduce accumulate, []
+      .then a.eq ["check", "drop"]
 
-      monitor
-        .skip 2
-        .take events.length
-        .observe ({ type }) -> a.eq events.shift(), type
+    it 'up -> down', ->
+      server = Server 1
 
-    it 'can be check / change, where change is drop', ->
-      server = Server(1)
-      events = [check, change]
+      Monitor
+      .create uri, 200
+      .takeUntil FRP.fromPromise(P.delay(400 - (200 / 2)))
+      .map F.path(["type"])
+      .skip 4
+      .reduce accumulate, []
+      .then a.eq ["check", "drop", "change", "down"]
+      .then server.done.bind(server)
 
-      monitor
-        .skip 2
-        .take events.length
-        .observe ({ type }) -> a.eq events.shift(), type
-        .then server.done.bind(server)
+    it 'down -> up', ->
+      P.delay(1).then -> Server()
 
-    it 'can be check / change, where change is pong', ->
-      events = [check, change]
-      server = undefined
-
-      P.delay(1).then -> server = Server()
-
-      monitor
-        .skip 2
-        .take events.length
-        .observe ({ type }) -> a.eq events.shift(), type
-        .then -> server.done()
-
-
+      Monitor
+      .create uri, 200
+      .takeUntil FRP.fromPromise(P.delay(400 - (200 / 2)))
+      .map F.path(["type"])
+      .skip 4
+      .reduce accumulate, []
+      .then a.eq ["check", "pong", "change", "up"]
 
   describe 'sugar', ->
 
-    it '.drops filters for checks that drop', ->
-      events = [check, check, check]
-
-      monitor
+    it '.drops has drop events', ->
+      Monitor
+      .create uri, 200
       .drops
-      .take events.length
-      .observe ({ type, data: { isResponsive } }) ->
-        a.eq events.shift(), type
-        a not isResponsive, 'is drop'
+      .takeUntil FRP.fromPromise(P.delay(400 - (200 / 2)))
+      .map F.path(["type"])
+      .reduce accumulate, []
+      .then a.eq ["drop", "drop"]
 
-    it '.pongs filters for checks that pong', ->
-      server = Server(3)
-      events = [check, check, check]
+    it '.pongs has pong events', ->
+      server = Server 3
 
-      monitor
+      Monitor
+      .create uri, 200
       .pongs
-      .take events.length
-      .observe ({ type, data: { isResponsive } }) ->
-        a.eq events.shift(), type
-        a isResponsive, 'is pong'
-      .then server.done.bind(server)
+      .takeUntil FRP.fromPromise(P.delay(600 - (200 / 2)))
+      .map F.path(["type"])
+      .reduce accumulate, []
+      .then a.eq ["pong", "pong", "pong"]
 
-    it '.downs filters for changes into responsive state', ->
-      server = Server(1)
-      events = [change]
+    it '.downs has down events', ->
+      P.delay(1).then(() -> Server 1)
 
-      monitor
+      Monitor
+      .create uri, 200
       .downs
-      .take events.length
-      .observe ({ type, data: { isResponsive } }) ->
-        a.eq events.shift(), type
-        a not isResponsive, 'is unresponsive state'
-      .then server.done.bind(server)
+      .takeUntil FRP.fromPromise(P.delay(600 - (200 / 2)))
+      .map F.path(["type"])
+      .reduce accumulate, []
+      .then a.eq ["down", "down"]
 
-    it '.ups filters for changes into responsive state', ->
-      events = [change]
-      server = undefined
-      P.delay(300).then -> server = Server(1)
+    it '.ups has up events', ->
+      Server 1
+      P.delay(400).then(() -> Server 1)
 
-      monitor
+      Monitor
+      .create uri, 200
       .ups
-      .take events.length
-      .observe ({ type, data: { isResponsive } }) ->
-        a.eq events.shift(), type
-        a isResponsive, 'is responsive state'
-      .then -> server.done()
-
-
+      .takeUntil FRP.fromPromise(P.delay(600 - (200 / 2)))
+      .map F.path(["type"])
+      .reduce accumulate, []
+      .then a.eq ["up", "up"]
 
 describe 'request failures', ->
 
