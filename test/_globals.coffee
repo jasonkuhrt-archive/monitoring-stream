@@ -8,4 +8,4 @@ G.F = require 'ramda'
 G.FRP = require 'most'
 G.P = require 'bluebird'
 
-a.eq = F.curry (ex, ac) -> a.deepEqual ex, ac
+a.eq = F.curry (ex, ac) -> a.deepEqual ac, ex

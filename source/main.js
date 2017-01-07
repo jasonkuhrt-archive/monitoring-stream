@@ -1,97 +1,99 @@
 import * as FRP from "most"
-import { create as createStream } from "@most/create"
-import HTTPClient, { CancelToken } from "axios"
+import { ping } from "./Ping"
 
 
-/* Event Constructor */
-
-//    Event :: String -> Object -> Event
-const Event = (type) => (
-  (data) => (
-    ({ type, data })
-  )
+const eventTypeUpdater = (type) => (event) => (
+  Object.assign({}, event, {
+    type,
+  })
 )
-
-
-
-/* Event Data */
 
 const eventNames = {
-  check: "checked",
-  change: "changed",
+  check: "check",
+  drop: "drop",
+  pong: "pong",
+  change: "change",
+  down: "down",
+  up: "up",
 }
-const CheckEvent = Event(eventNames.check)
-const ChangeEvent = Event(eventNames.change)
 
 
+const CheckEvent = (data) => ({
+  type: eventNames.check,
+  data,
+})
 
-//    ping :: PingSettings -> Promise PingResultEvent
-const ping = (config) => (
-  HTTPClient(config)
-  .then((result) => ({
-    isResponsive: true,
-    result
-  }))
-  .catch((error) => ({
-    isResponsive: false,
-    result: error
-  }))
-)
-
-
-
-//    create :: String, Maybe Integer -> UriMonitor
 const create = (uri, checkIntervalMs = 1000) => {
-  const stream = createStream((add) => {
+  const doPing = () =>
+    ping({
+      url: uri,
+      timeout: checkIntervalMs,
+    }).then(CheckEvent)
 
-    const state = {
-      wasResponsive: null,
-      cancelToken: CancelToken.source(),
-    }
-
-    const doPing = () => {
-      ping({
-        url: uri,
-        cancelToken: state.cancelToken.token,
-        timeout: checkIntervalMs,
-      })
-      .then((result) => {
-        add(CheckEvent(result))
-        if (state.wasResponsive !== result.isResponsive) {
-          add(ChangeEvent(result))
-          state.wasResponsive = result.isResponsive
-        }
-      })
-    }
-
+  const checks =
     FRP
     .periodic(checkIntervalMs, 0)
-    .until(FRP.fromPromise(state.cancelToken.token.promise))
-    .observe(doPing)
+    .map(doPing)
+    .await()
+    .multicast()
 
-    return function dispose () {
-      state.cancelToken.cancel("Monitor stopped by user.")
-    }
+  const drops =
+    checks
+    .filter((event) => (!event.data.isResponsive))
+    .map(eventTypeUpdater(eventNames.drop))
+
+  const pongs =
+    checks
+    .filter((event) => (event.data.isResponsive))
+    .map(eventTypeUpdater(eventNames.pong))
+
+  const changes =
+    checks
+    .scan(
+      ([ , prev ], curr) => [ prev, curr ],
+      [ null, null ]
+    )
+    .filter(([ prev, curr ]) => (
+      curr &&
+      (!prev || prev.data.isResponsive !== curr.data.isResponsive)
+    ))
+    .map(([ , curr ]) => curr)
+    .map(eventTypeUpdater(eventNames.change))
+
+  const downs =
+    changes
+    .filter((event) => (!event.data.isResponsive))
+    .map(eventTypeUpdater(eventNames.down))
+
+  const ups =
+    changes
+    .filter((event) => (event.data.isResponsive))
+    .map(eventTypeUpdater(eventNames.up))
+
+  const allEvents =
+    FRP.mergeArray([
+      checks,
+      drops,
+      pongs,
+      changes,
+      ups,
+      downs,
+    ])
+
+  Object.assign(allEvents, {
+    checks,
+    drops,
+    pongs,
+    changes,
+    downs,
+    ups,
   })
 
-  /* UX: Expose filtered streams for simplifying access to common
-  patterns. */
-
-  stream.downs = stream.filter(({ type, data }) => (
-    type === eventNames.change && !data.isResponsive
-  ))
-  stream.ups = stream.filter(({ type, data }) => (
-    type === eventNames.change && data.isResponsive
-  ))
-  stream.drops = stream.filter(({ type, data }) => (
-    type === eventNames.check && !data.isResponsive
-  ))
-  stream.pongs = stream.filter(({ type, data }) => (
-    type === eventNames.check && data.isResponsive
-  ))
-
-  return stream
+  return allEvents
 }
+
+
+
 
 
 

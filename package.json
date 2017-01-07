@@ -8,7 +8,6 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "@most/create": "^2.0.1",
     "axios": "^0.15.3",
     "most": "^1.1.1"
   },
