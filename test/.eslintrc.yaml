@@ -1,0 +1,6 @@
+globals:
+  Assert: true
+  F: true
+  P: true
+  FRP: true
+  nock: true
