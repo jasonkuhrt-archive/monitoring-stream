@@ -1,6 +1,23 @@
 import Monitor from "../source/main"
+import Chai from "chai"
+import F from "ramda"
+import P from "bluebird"
+import * as FRP from "most"
 
 
+
+FRP.Stream.prototype.collect = function () {
+  return this.reduce(
+    (xs, x) => { xs.push(x); return xs },
+    []
+  )
+}
+
+const Assert = Object.assign(Chai.assert, {
+  eq: F.curry((ex, ac) => (
+    Assert.deepEqual(ac, ex)
+  ))
+})
 
 const Action = {}
 

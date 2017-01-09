@@ -61,9 +61,6 @@
     "url": "https://github.com/jasonkuhrt/uri-monitor/issues"
   },
   "jest": {
-    "testEnvironment": "node",
-    "setupFiles": [
-      "./test-setup.js"
-    ]
+    "testEnvironment": "node"
   }
 }
