@@ -61,68 +61,49 @@ it("monitor recursively executes given action", () => (
 
 
 describe("events from state changes", () => {
-  it("init -> up", () => {
-    const m = Monitor.create(Action.ok, 20)
-    const upEvent = FRP.fromPromise(m.ups.take(1).drain())
-    return m
-    .map(F.path(["type"]))
-    .takeUntil(upEvent)
-    .collect()
-    .then(Assert.eq([ "check", "pong", "change", "up" ]))
-  })
+  const eventsUp = [ "check", "pong", "change", "up" ]
+  const eventsDown = [ "check", "drop", "change", "down" ]
+  const cases = [{
+    name: "init -> up",
+    action: Action.ok,
+    stopSignal: (m) => FRP.fromPromise(m.ups.take(1).drain()),
+    expectedEvents: eventsUp,
+  },{
+    name: "init -> down",
+    action: Action.fail,
+    stopSignal: (m) => FRP.fromPromise(m.downs.take(1).drain()),
+    expectedEvents: eventsDown,
+  },{
+    name: "up -> up",
+    action: Action.ok,
+    stopSignal: (m) => FRP.fromPromise(m.pongs.take(2).drain()),
+    expectedEvents: [ ...eventsUp, "check", "pong" ],
+  },{
+    name: "down -> down",
+    action: Action.fail,
+    stopSignal: (m) => FRP.fromPromise(m.drops.take(2).drain()),
+    expectedEvents: [ ...eventsDown, "check", "drop" ],
+  },{
+    name: "up -> down",
+    action: Action.loop([ Action.ok, Action.fail ]),
+    stopSignal: (m) => FRP.fromPromise(m.drops.take(1).drain()),
+    expectedEvents: [ ...eventsUp, ...eventsDown ],
+  },{
+    name: "down -> up",
+    action: Action.loop([ Action.fail, Action.ok ]),
+    stopSignal: (m) => FRP.fromPromise(m.ups.take(1).drain()),
+    expectedEvents: [ ...eventsDown, ...eventsUp ],
+  }]
 
-  it("init -> down", () => {
-    const m = Monitor.create(Action.fail, 20)
-    return m
-    .map(F.path(["type"]))
-    .take(4)
-    .collect()
-    .then(Assert.eq([ "check", "drop", "change", "down" ]))
-  })
-
-  it("up -> up", () => {
-    const m = Monitor.create(Action.ok, 20)
-    const twoPongEvents = FRP.fromPromise(m.pongs.take(2).drain())
-    return m
-    .map(F.path(["type"]))
-    .takeUntil(twoPongEvents)
-    .skip(4) // skip init -> up
-    .collect()
-    .then(Assert.eq([ "check", "pong" ]))
-  })
-
-  it("down -> down", () => {
-    const m = Monitor.create(Action.fail, 20)
-    const dropEvent = FRP.fromPromise(m.drops.take(2).drain())
-    return m
-    .map(F.path(["type"]))
-    .takeUntil(dropEvent)
-    .skip(4) // skip init -> down
-    .collect()
-    .then(Assert.eq([ "check", "drop" ]))
-  })
-
-  it("up -> down", () => {
-    const m = Monitor.create(Action.loop([ Action.ok, Action.fail ]), 20)
-    const downEvent = FRP.fromPromise(m.drops.take(1).drain())
-    return m
-    .map(F.path(["type"]))
-    .takeUntil(downEvent)
-    .skip(4) // skip init -> up
-    .collect()
-    .then(Assert.eq([ "check", "drop", "change", "down" ]))
-  })
-
-  it("down -> up", () => {
-    const action = Action.loop([ Action.fail, Action.ok ])
-    const m = Monitor.create(action, 20)
-    const upEvent = FRP.fromPromise(m.ups.take(1).drain())
-    return m
-    .map(F.path(["type"]))
-    .takeUntil(upEvent)
-    .skip(4) // skip init -> down
-    .collect()
-    .then(Assert.eq([ "check", "pong", "change", "up" ]))
+  cases.map(({ name, action, stopSignal, expectedEvents }) => {
+    it(name, () => {
+      const m = Monitor.create(action, 20)
+      return m
+      .map(F.path(["type"]))
+      .takeUntil(stopSignal(m))
+      .collect()
+      .then(Assert.eq(expectedEvents))
+    })
   })
 })
 
