@@ -8,7 +8,6 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "axios": "^0.15.3",
     "most": "^1.1.1"
   },
   "repository": {
@@ -16,13 +15,15 @@
     "url": "git://github.com/jasonkuhrt/uri-monitor.git"
   },
   "keywords": [
-    "uri",
-    "url",
+    "promise",
+    "async",
     "monitor",
     "event",
     "connection",
     "disconnection",
-    "status"
+    "status",
+    "ping",
+    "pong"
   ],
   "author": "Jason Kuhrt <jasonkuhrt@me.com> (http://jasonkuhrt.com/)",
   "name": "uri-monitor",
@@ -41,7 +42,6 @@
     "eslint": "^3.12.0",
     "eslint-config-littlebits": "^0.5.1",
     "jest-cli": "^18.1.0",
-    "nock": "^9.0.2",
     "ramda": "^0.22.1"
   },
   "eslintConfig": {

@@ -1,5 +1,4 @@
 import * as FRP from "most"
-import { ping } from "./Ping"
 
 
 
@@ -23,17 +22,31 @@ const CheckEvent = (data) => ({
   data,
 })
 
-const create = (uri, checkIntervalMs = 1000) => {
-  const doPing = () =>
-    ping({
-      url: uri,
-      timeout: checkIntervalMs,
-    }).then(CheckEvent)
+const ActionOkRecord = (result) => ({
+  isResponsive: true,
+  result,
+})
+
+const ActionFailRecord = (result) => ({
+  isResponsive: false,
+  result,
+})
+
+const ActionChecker = (action) => {
+  const checkAction = () =>
+    action()
+    .then(ActionOkRecord)
+    .catch(ActionFailRecord)
+    .then(CheckEvent)
+  return checkAction
+}
+
+const create = (action, checkIntervalMs = 1000) => {
 
   const checks =
     FRP
     .periodic(checkIntervalMs, 0)
-    .map(doPing)
+    .map(ActionChecker(action))
     .await()
     .multicast()
 
@@ -80,7 +93,7 @@ const create = (uri, checkIntervalMs = 1000) => {
       downs,
     ])
 
-  Object.assign(allEvents, {
+  return Object.assign(allEvents, {
     checks,
     drops,
     pongs,
@@ -88,8 +101,6 @@ const create = (uri, checkIntervalMs = 1000) => {
     downs,
     ups,
   })
-
-  return allEvents
 }
 
 

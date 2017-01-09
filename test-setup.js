@@ -1,5 +1,4 @@
 import Chai from "chai"
-import nock from "nock"
 import F from "ramda"
 import P from "bluebird"
 import * as FRP from "most"
@@ -22,7 +21,6 @@ Object.assign(Assert, {
 
 Object.assign(global, {
   Assert: Chai.assert,
-  nock,
   F,
   FRP,
   P,
