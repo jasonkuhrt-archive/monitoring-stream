@@ -17,161 +17,64 @@ npm install --save uri-monitor
 ```
 
 
-
-## Examples
-
-Basis for following examples:
-
-```js
-import Monitor from 'uri-monitor'
-
-const monitor = Monitor.create('https://foo.io', 1500)
-```
-
-Monitoring outages:
-
-```js
-const serviceChanges = monitor.filter(({ type }) => type === 'change')
-
-serviceChanges
-.filter({ data: { isResponsive }} => !isResponsive)
-.observe(({ data: { result }}) => console.warn('Service Down!', result))
-
-serviceChanges
-.filter({ data: { isResponsive }} => isResponsive)
-.observe(() => console.warn('Service Up!'))
-```
-
-Monitoring outages via <<convenience-streams-on-stream, `Stream` sugar>>:
-
-```js
-monitor
-.downs
-.observe(() => console.warn('Service Down!'))
-
-serviceChanges
-.ups
-.observe(() => console.warn('Service Up!'))
-```
-
-
-
 ## API
 
-### `.create`
+### Monitor.create
 
-```haskell
-create :: String, Maybe Integer -> Stream MonitorEvent
---        uri     interval
+```js
+Monitor.create(action : () => Promise<A>, intervalMs : number?): Observable<MonitorEvent<A>>
 ```
 
-* `uri` The URI that periodic GET requests will be made to.
+* `action` The async action to recurse. The expected usage is that you are somehow pinging the resource you are interested in monitoring.
 
-* `interval` Optional, defaults to `1000`. The milliseconds between each request. Note this is _not_ the time between a response and the next request because requests are evenly staggered. For example:
-+
-```
---- = Time    Q = Request    R = Response
+* `intervalMs` The milliseconds between each `action` invocation. Defaults to `1000`.
 
-Q1----R1-Q2-R2----Q3--R3---Q4--
-^        ^        ^        ^    <== Evenly staggered
-```
-+
-A response cannot temporally leak into the next request because each request is configured to timeout within the `interval`.
-
-#### Definition of request failure
-
-The following will cause the result of a request to be considered a failure:
-
-* Request is not responded to within `interval`
-* Response HTTP Status Code is `>= 400`.
-* Any general HTTP Error (e.g. a client-side CORS error)
-* Any general Network Error (e.g. `ENOTFOUND` host)
-
-In all of these cases `data.isResponsive` will be `false` and `data.result` will be a <<requesterror, `RequestError`>>.
-
-#### Convenience streams on `Stream`
-
-The <<stream,`Stream`>> returned by <<create, `create`>> is monkey patched with filtered variants for common patterns. They are:
-
-##### `.pongs`
-
-```haskell
-pongs :: Stream CheckedEvent
-```
-<<checkedevent, `CheckedEvents`>> where `data.isResponsive` is `true`.
-
-##### `.drops`
-
-```haskell
-drops :: Stream CheckedEvent
-```
-<<checkedevent, `CheckedEvents`>> where `data.isResponsive` is `false`.
-
-##### `.ups`
-
-```haskell
-ups :: Stream ChangedEvent
-```
-<<changedevent, `ChangedEvents`>> where `data.isResponsive` is `true`.
-
-##### `.downs`
-
-```haskell
-ups :: Stream ChangedEvent
-```
-<<changedevent, `ChangedEvents`>> where `data.isResponsive` is `false`.
+* `returns` An observable stream of monitor events. The observable implementation we use is https://github.com/cujojs/most[`most`].
 
 
 
-## Types
+### MonitorEvent<A>
 
-#### `Stream`
+Every application of `action` returns a regular promise which ultimately resolves or rejects. In the context of a stream of such values, it is useful to have various terms to refer to different states and patterns of state change:
 
-An instance of link:https://github.com/cujojs/most/blob/master/docs/api.md[`most`].
+|===
+| Event Name | Case
+| `pong` | promise resolved
+| `drop` | promise rejected
+| `check` | case of `pong` or `drop`
+| `up` | promise resolved and: previous attempt rejected or was nothing (initial check)
+| `down` | promise rejected and: previous attempt resolved or was nothing (initial case)
+| `change` | case of `up` or `down`
+|===
 
-#### `MonitorEvent`
 
-Base interface that all emitted events implement. If `isResponsive` is false then `result` is a <<requesterror, `RequestError`>> otherwise `result` is a <<response, `Response`>>.
+With this in mind, the structure of a `MonitorEvent` is:
 
-```yaml
-type : String
-data :
-  isResponsive: Bool
-  result: CheckResult
+```js
+type MonitorEvent<A> = {
+  type : string,
+  data : {
+    isResponsive : boolean,
+    result : A,
+  }
+}
 ```
 
-##### `CheckedEvent`
+And the value of `type` is any of the aforementioned event names.
 
-Emitted every time a result of a request is available.
+`result` is the settled value of the promise returned from `action`.
 
-```yaml
-type: "checked"
-data:
-  isResponsive: Bool
-  result: CheckResult
-```
+### monitor.<substream>
 
-##### `ChangedEvent`
+The observable stream returned by <<create, `create`>> contains **all** events. For example on the first monitor check four events will occur: `check`, `drop | pong`, `change`, `up | down`. But often this is more noise than you want and while it is easy enough to filter the stream (`monitor.filter(...)`) there is an easier way. Each event type has a corresponding property on the main stream whose value is a filtered stream of _just that event_:
 
-Emitted every time a result of a request has a different `isResponsive` value than the previous result.
 
-```yaml
-type: "changed"
-data:
-  isResponsive: Bool
-  result: CheckResult
-```
+##### monitor.checks
 
-### `CheckResult`
+##### monitor.pongs
 
-```yaml
-RequestError | NetworkError | Response
-```
+##### monitor.drops
 
-### `Response`
+##### monitor.ups
 
-An https://github.com/mzabriskie/axios#response-schema[`AxiosResponse`].
-
-### `RequestError`
-
-An https://github.com/mzabriskie/axios#handling-errors[`AxiosRequestError`].
+##### monitor.downs
