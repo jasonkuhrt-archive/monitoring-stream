@@ -33,7 +33,7 @@ Monitor.create(action : () => Promise<A>, intervalMs : number?): Observable<Moni
 
 
 
-### MonitorEvent
+### MonitorEvent<A>
 
 Every application of `action` returns a regular promise which ultimately resolves or rejects. In the context of a stream of such values, it is useful to have various terms to refer to different states and patterns of state change:
 
