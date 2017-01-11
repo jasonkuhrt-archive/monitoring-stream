@@ -19,7 +19,7 @@ npm install --save uri-monitor
 
 ## API
 
-### `Monitor.create`
+### Monitor.create
 
 ```js
 Monitor.create(action : () => Promise<A>, intervalMs : number?): Observable<MonitorEvent<A>>
@@ -64,17 +64,17 @@ And the value of `type` is any of the aforementioned event names.
 
 `result` is the settled value of the promise returned from `action`.
 
-### Sub Streams
+### monitor.<substream>
 
 The observable stream returned by <<create, `create`>> contains **all** events. For example on the first monitor check four events will occur: `check`, `drop | pong`, `change`, `up | down`. But often this is more noise than you want and while it is easy enough to filter the stream (`monitor.filter(...)`) there is an easier way. Each event type has a corresponding property on the main stream whose value is a filtered stream of _just that event_:
 
 
-##### `monitor.checks`
+##### monitor.checks
 
-##### `monitor.pongs`
+##### monitor.pongs
 
-##### `monitor.drops`
+##### monitor.drops
 
-##### `monitor.ups`
+##### monitor.ups
 
-##### `monitor.downs`
+##### monitor.downs
