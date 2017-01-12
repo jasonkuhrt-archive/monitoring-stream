@@ -1,7 +1,7 @@
 {
   "license": "MIT",
   "scripts": {
-    "test": "eslint source && jest",
+    "test": "jest",
     "test-dev": "jest --watch",
     "build": "rm -rf build && babel --out-dir build source",
     "postversion": "git push && git push --tags && npm publish",
