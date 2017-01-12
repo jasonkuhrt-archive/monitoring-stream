@@ -1,10 +1,10 @@
 :toc: macro
 :toc-title:
-:toclevels: 9 
+:toclevels: 9
 
 # URI Monitor
 
-image:https://circleci.com/gh/jasonkuhrt/uri-monitor.svg?style=svg["Circle CI", link="https://circleci.com/gh/jasonkuhrt/uri-monitor"]
+image:https://travis-ci.org/jasonkuhrt/uri-monitor.svg?branch=master["Build Status", link="https://travis-ci.org/jasonkuhrt/uri-monitor"]
 
 toc::[]
 
