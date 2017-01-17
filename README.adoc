@@ -78,3 +78,5 @@ The observable stream returned by <<create, `create`>> contains **all** events. 
 ##### monitor.ups
 
 ##### monitor.downs
+
+##### monitor.changes
