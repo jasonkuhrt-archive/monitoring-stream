@@ -16,6 +16,47 @@ toc::[]
 npm install --save uri-monitor
 ```
 
+## About
+
+`resource-monitor` (RM) is a simple library that makes it trivial to monitor the results of repeatedly executing an asynchronous action. A canonical example would be monitoring the availability of a resource such as a URI returning 200 or file being present.
+
+## Typical usage
+
+* Start with some function that returns a promise (usually that represents some kind of async IO like network request or file system action)
+* Pass this function to `Monitor.create`
+* Receive back a stream of events produced by repeatedly invoking given function
+* There are six possible events representing patterns about the repeated promises. This includes simple "was rejected", "was resolved" as well as deltas "was resolved preceded by was rejected" and vice-versa. See API docs for details about all six.
+* Build logic around one or more of the six emitted events using the https://github.com/cujojs/most[`most`] API.
+
+## Example
+We can combine streams together to create request retry logic to do things like https://github.com/elastic/elasticsearch-js/blob/master/test/integration/yaml_suite/client_manager.js#L30-L42[request retrying ElasticSearch before starting tests]:
+
+```js
+const monitor = Monitor.create(pingElasticSearch, 1000)
+
+const maxRetries3 =
+  monitor
+  .drops
+  .takeUntil(monitor.pongs)
+  .skip(2)
+  .take(1)
+
+monitor
+.pongs
+.takeUntil(maxRetries3)
+.take(1)
+.drain()
+.then(({ data: { isAvailable, result }}) => {
+  isAvailable
+    ? runTests
+    : Promise.reject(
+        Object.assign(
+          new Error("ElasticSearch could not be reached"),
+          { cause: result }
+        )
+}))
+```
+
 
 ## API
 
