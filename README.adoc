@@ -34,10 +34,9 @@ const pingElasticSearch = () =>
     ? Promise.reject(new Error("Foobar network error"))
     : Promise.resolve("OK!")
 
+const pingInterval = 1000
 const pingAttempts = 3
-
-const monitor = Monitor.create(pingElasticSearch, 1000)
-
+const monitor = Monitor.create(pingElasticSearch, pingInterval)
 const maxRetries = monitor.drops.takeUntil(monitor.pongs).take(pingAttempts)
 
 monitor
