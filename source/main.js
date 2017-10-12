@@ -1,13 +1,5 @@
 import * as FRP from "most"
 
-
-
-const eventTypeUpdater = (type) => (event) => (
-  Object.assign({}, event, {
-    type,
-  })
-)
-
 const eventNames = {
   check: "check",
   drop: "drop",
@@ -17,81 +9,60 @@ const eventNames = {
   up: "up",
 }
 
-const CheckEvent = (data) => ({
+const toEventType = type => event =>
+  Object.assign({}, event, {
+    type,
+  })
+
+const CheckEvent = (isResponsive, data) => ({
   type: eventNames.check,
+  isResponsive,
   data,
 })
 
-const ActionOkRecord = (result) => ({
-  isResponsive: true,
-  result,
-})
-
-const ActionFailRecord = (result) => ({
-  isResponsive: false,
-  result,
-})
-
-const ActionChecker = (action) => {
-  const checkAction = () =>
-    action()
-    .then(ActionOkRecord)
-    .catch(ActionFailRecord)
-    .then(CheckEvent)
-  return checkAction
+const createActionRunner = action => () => {
+  let result
+  try {
+    return action()
+      .then(data => CheckEvent(true, data))
+      .catch(data => CheckEvent(false, data))
+  } catch (error) {
+    CheckEvent(false, error)
+  }
 }
 
 const create = (action, checkIntervalMs = 1000) => {
-
-  const checks =
-    FRP
-    .periodic(checkIntervalMs, 0)
-    .map(ActionChecker(action))
-    .await()
+  const checks = FRP.periodic(checkIntervalMs)
+    .map(createActionRunner(action))
+    .awaitPromises()
     .multicast()
 
-  const drops =
-    checks
-    .filter((event) => (!event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.drop))
+  const drops = checks
+    .filter(event => !event.data.isResponsive)
+    .map(toEventType(eventNames.drop))
 
-  const pongs =
-    checks
-    .filter((event) => (event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.pong))
+  const pongs = checks
+    .filter(event => event.data.isResponsive)
+    .map(toEventType(eventNames.pong))
 
-  const changes =
-    checks
-    .scan(
-      ([ , prev ], curr) => [ prev, curr ],
-      [ null, null ]
+  const changes = checks
+    .scan(([, prev], curr) => [prev, curr], [null, null])
+    .filter(
+      ([prev, curr]) =>
+        curr && (!prev || prev.data.isResponsive !== curr.data.isResponsive),
     )
-    .filter(([ prev, curr ]) => (
-      curr &&
-      (!prev || prev.data.isResponsive !== curr.data.isResponsive)
-    ))
-    .map(([ , curr ]) => curr)
-    .map(eventTypeUpdater(eventNames.change))
+    .map(([, curr]) => curr)
+    .map(toEventType(eventNames.change))
 
-  const downs =
-    changes
-    .filter((event) => (!event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.down))
+  const downs = changes
+    .filter(event => !event.data.isResponsive)
+    .map(toEventType(eventNames.down))
 
-  const ups =
-    changes
-    .filter((event) => (event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.up))
+  const ups = changes
+    .filter(event => event.data.isResponsive)
+    .map(toEventType(eventNames.up))
 
-  const allEvents =
-    FRP.mergeArray([
-      checks,
-      drops,
-      pongs,
-      changes,
-      ups,
-      downs,
-    ])
+  const allEvents = FRP.mergeArray([checks, drops, pongs, changes, ups, downs])
 
   return Object.assign(allEvents, {
     checks,
@@ -103,16 +74,8 @@ const create = (action, checkIntervalMs = 1000) => {
   })
 }
 
-
-
-
-
-
 export default {
   create,
   eventNames,
 }
-export {
-  create,
-  eventNames,
-}
+export { create, eventNames }

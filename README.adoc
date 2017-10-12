@@ -9,54 +9,56 @@ image:https://travis-ci.org/jasonkuhrt/uri-monitor.svg?branch=master["Build Stat
 toc::[]
 
 
-
 ## Installation
 
 ```
-npm install --save uri-monitor
+yarn add uri-monitor
 ```
 
 ## About
 
-`resource-monitor` (RM) is a simple library that makes it trivial to monitor the results of repeatedly executing an asynchronous action. A canonical example would be monitoring the availability of a resource such as a URI returning 200 or file being present.
+`resource-monitor` (RM) is a simple library that makes it trivial to monitor the results of repeatedly executing an asynchronous action. A canonical example would be monitoring a URL for healthy (e.g. status code 200) responses.
+
+## Example
+
+#### Declarative Request-Retry
+
+We can combine streams together to declaratively create request-retry logic. Inspiration for this example was taken from the imperative request-retry logic in  https://github.com/elastic/elasticsearch-js/blob/master/test/integration/yaml_suite/client_manager.js#L30-L42[this ElasticSearch test suite] which establishes the connectivity with the database before running its test suite.
+
+```js
+const runTests = () =>
+  Promise.resolve("Your integration test suite here...")
+
+const pingElasticSearch = () =>
+  Boolean(Math.round(Math.random()))
+    ? Promise.reject(new Error("Foobar network error"))
+    : Promise.resolve("OK!")
+
+const pingAttempts = 3
+
+const monitor = Monitor.create(pingElasticSearch, 1000)
+
+const maxRetries = monitor.drops.takeUntil(monitor.pongs).take(pingAttempts)
+
+monitor
+  .pongs
+  .takeUntil(maxRetries)
+  .take(1)
+  .drain()
+  .then((result) =>
+    result.isResponsive
+      ? runTests()
+      : Promise.reject(result.data)
+  ))
+```
 
 ## Typical usage
 
-* Start with some function that returns a promise (usually that represents some kind of async IO like network request or file system action)
+* Start with some function that returns a promise (usually that encapsulates some kind of async IO like network request or file system action)
 * Pass this function to `Monitor.create`
-* Receive back a stream of events produced by repeatedly invoking given function
+* Receive back a stream of events produced by repeatedly invoking the passed function
 * There are six possible events representing patterns about the repeated promises. This includes simple "was rejected", "was resolved" as well as deltas "was resolved preceded by was rejected" and vice-versa. See API docs for details about all six.
 * Build logic around one or more of the six emitted events using the https://github.com/cujojs/most[`most`] API.
-
-## Example
-We can combine streams together to create request retry logic to do things like https://github.com/elastic/elasticsearch-js/blob/master/test/integration/yaml_suite/client_manager.js#L30-L42[request retrying ElasticSearch before starting tests]:
-
-```js
-const monitor = Monitor.create(pingElasticSearch, 1000)
-
-const maxRetries3 =
-  monitor
-  .drops
-  .takeUntil(monitor.pongs)
-  .skip(2)
-  .take(1)
-
-monitor
-.pongs
-.takeUntil(maxRetries3)
-.take(1)
-.drain()
-.then(({ data: { isAvailable, result }}) => {
-  isAvailable
-    ? runTests
-    : Promise.reject(
-        Object.assign(
-          new Error("ElasticSearch could not be reached"),
-          { cause: result }
-        )
-}))
-```
-
 
 ## API
 
@@ -76,7 +78,7 @@ Monitor.create(action : () => Promise<A>, intervalMs : number?): Observable<Moni
 
 ### MonitorEvent<A>
 
-Every application of `action` returns a regular promise which ultimately resolves or rejects. In the context of a stream of such values, it is useful to have various terms to refer to different states and patterns of state change:
+Every invocation of `action` returns a promise, ultimately resolving or rejecting. In the context of a stream of such values, it is useful to have various terms to refer to different state change patterns:
 
 |===
 | Event Name | Case
@@ -88,16 +90,21 @@ Every application of `action` returns a regular promise which ultimately resolve
 | `change` | case of `up` or `down`
 |===
 
-
-With this in mind, the structure of a `MonitorEvent` is:
+With this in mind, the type of a `MonitorEvent` is:
 
 ```js
+type EventType =
+  | "pong"
+  | "drop"
+  | "check"
+  | "up"
+  | "down"
+  | "change"
+
 type MonitorEvent<A> = {
-  type : string,
-  data : {
-    isResponsive : boolean,
-    result : A,
-  }
+  type : EventType,
+  isResponsive : boolean,
+  data : A
 }
 ```
 

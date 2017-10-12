@@ -8,7 +8,7 @@
     "prepublish": "npm run build"
   },
   "dependencies": {
-    "most": "^1.1.1"
+    "most": "^1.7.2"
   },
   "repository": {
     "type": "git",
@@ -48,7 +48,7 @@
     "extends": [
       "littlebits"
     ],
-    "env":  {
+    "env": {
       "jest": true
     }
   },
