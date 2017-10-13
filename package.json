@@ -61,6 +61,10 @@
     "url": "https://github.com/jasonkuhrt/uri-monitor/issues"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/build/"
+    ]
   }
 }
