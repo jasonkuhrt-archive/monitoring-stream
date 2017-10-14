@@ -26,7 +26,7 @@ const create = (action, checkIntervalMs = 1000) => {
     .skip(1)
     .map(([prev, curr]) =>
       Object.assign(curr, {
-        isResponsiveChange: !prev || prev.isResponsive === curr.isResponsive,
+        isResponsiveChanged: !prev || prev.isResponsive === curr.isResponsive,
       }),
     )
     .multicast()
@@ -35,14 +35,14 @@ const create = (action, checkIntervalMs = 1000) => {
 
   const pongs = stream.filter(event => event.isResponsive)
 
-  const changes = stream.filter(event => event.isResponsiveChange)
+  const changes = stream.filter(event => event.isResponsiveChanged)
 
   const downs = changes.filter(
-    event => !event.isResponsive && event.isResponsiveChange,
+    event => !event.isResponsive && event.isResponsiveChanged,
   )
 
   const ups = changes.filter(
-    event => event.isResponsive && event.isResponsiveChange,
+    event => event.isResponsive && event.isResponsiveChanged,
   )
 
   return Object.assign(stream, {

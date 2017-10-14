@@ -60,7 +60,7 @@ monitor
 ```js
 type MonitorEvent<A> = {
   isResponsive: boolean,
-  isResponsiveChange: boolean,
+  isResponsiveChanged: boolean,
   data: A | null
   error: Error | null
 }
@@ -68,9 +68,9 @@ type MonitorEvent<A> = {
 
 A monitor event represents the result of an action invocation. The type variable `A` represents the action's resolution type.
 
-`isResponsive` indicates if the action is resolving while `isResponsiveChange` indicates if that state is different than the previous event. For the first check wherein there is no such previous event `isResponsiveChange` is considered to be `true`.
+`isResponsive` indicates if the action is resolving while `isResponsiveChanged` indicates if that state is different than the previous event. For the first check wherein there is no such previous event `isResponsiveChanged` is considered to be `true`.
 
-You can think of `isResponsive` as being your health indicator while `isResponsiveChange` as being your alert to when crashing or recovery occurs. `isResponsiveChange` is technically a convenience that you could calculate yourself but seeing as its often needed and that its calculation requires state it seems worthwhile.
+You can think of `isResponsive` as being your health indicator while `isResponsiveChanged` as being your alert to when crashing or recovery occurs. `isResponsiveChanged` is technically a convenience that you could calculate yourself but seeing as its often needed and that its calculation requires state it seems worthwhile.
 
 ### .create
 
@@ -98,12 +98,12 @@ Stream of events where `isResponsive` is `false`.
 
 ##### #ups
 
-Stream of events where `isResponsive` is `true` and `isResponsiveChange` is `true`.
+Stream of events where `isResponsive` is `true` and `isResponsiveChanged` is `true`.
 
 ##### #downs
 
-Stream of events where `isResponsive` is `false` and `isResponsiveChange` is `true`.
+Stream of events where `isResponsive` is `false` and `isResponsiveChanged` is `true`.
 
 ##### #changes
 
-Stream of events where `isResponsiveChange` is `true`.
+Stream of events where `isResponsiveChanged` is `true`.

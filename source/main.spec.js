@@ -65,7 +65,7 @@ it("monitor pongs have the right MonitorEvent values", () =>
     .then(
       Assert.eq({
         isResponsive: true,
-        isResponsiveChange: true,
+        isResponsiveChanged: true,
         data: Action.ok.data,
         error: null,
       }),
@@ -78,7 +78,7 @@ it("monitor drops have the right MonitorEvent values", () =>
     .then(
       Assert.eq({
         isResponsive: false,
-        isResponsiveChange: true,
+        isResponsiveChanged: true,
         data: null,
         error: Action.fail.value,
       }),
