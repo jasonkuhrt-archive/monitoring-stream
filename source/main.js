@@ -1,21 +1,7 @@
+/* eslint-disable*/
 import * as FRP from "most"
 
-const eventNames = {
-  check: "check",
-  drop: "drop",
-  pong: "pong",
-  change: "change",
-  down: "down",
-  up: "up",
-}
-
-const toEventType = type => event =>
-  Object.assign({}, event, {
-    type,
-  })
-
 const CheckEvent = (isResponsive, data) => ({
-  type: eventNames.check,
   isResponsive,
   data,
 })
@@ -32,40 +18,34 @@ const createActionRunner = action => () => {
 }
 
 const create = (action, checkIntervalMs = 1000) => {
-  const checks = FRP.periodic(checkIntervalMs)
+  const stream = FRP.periodic(checkIntervalMs)
     .map(createActionRunner(action))
     .awaitPromises()
+    .scan(([, currPrev], currNow) => [currPrev, currNow], [null, null])
+    // We skip 1 because our given scan seed of [null, null] is emitted into the stream as the initial scan output but we don't want it.
+    .skip(1)
+    .map(([prev, curr]) =>
+      Object.assign(curr, {
+        isResponsiveChange: !prev || prev.isResponsive === curr.isResponsive,
+      }),
+    )
     .multicast()
 
-  const drops = checks
-    .filter(event => !event.data.isResponsive)
-    .map(toEventType(eventNames.drop))
+  const drops = stream.filter(event => !event.isResponsive)
 
-  const pongs = checks
-    .filter(event => event.data.isResponsive)
-    .map(toEventType(eventNames.pong))
+  const pongs = stream.filter(event => event.isResponsive)
 
-  const changes = checks
-    .scan(([, prev], curr) => [prev, curr], [null, null])
-    .filter(
-      ([prev, curr]) =>
-        curr && (!prev || prev.data.isResponsive !== curr.data.isResponsive),
-    )
-    .map(([, curr]) => curr)
-    .map(toEventType(eventNames.change))
+  const changes = stream.filter(event => event.isResponsiveChange)
 
-  const downs = changes
-    .filter(event => !event.data.isResponsive)
-    .map(toEventType(eventNames.down))
+  const downs = changes.filter(
+    event => !event.isResponsive && event.isResponsiveChange,
+  )
 
-  const ups = changes
-    .filter(event => event.data.isResponsive)
-    .map(toEventType(eventNames.up))
+  const ups = changes.filter(
+    event => event.isResponsive && event.isResponsiveChange,
+  )
 
-  const allEvents = FRP.mergeArray([checks, drops, pongs, changes, ups, downs])
-
-  return Object.assign(allEvents, {
-    checks,
+  return Object.assign(stream, {
     drops,
     pongs,
     changes,
@@ -74,8 +54,5 @@ const create = (action, checkIntervalMs = 1000) => {
   })
 }
 
-export default {
-  create,
-  eventNames,
-}
-export { create, eventNames }
+export default { create }
+export { create }

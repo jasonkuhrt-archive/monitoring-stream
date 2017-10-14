@@ -2,7 +2,7 @@
   "license": "MIT",
   "scripts": {
     "test": "jest",
-    "test-dev": "jest --watch",
+    "test:dev": "jest --watch",
     "build": "rm -rf build && babel --out-dir build source",
     "postversion": "git push && git push --tags && npm publish",
     "prepublish": "npm run build"
