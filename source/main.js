@@ -1,19 +1,19 @@
-/* eslint-disable*/
 import * as FRP from "most"
 
-const CheckEvent = (isResponsive, data) => ({
+const CheckEvent = (isResponsive, data, error) => ({
   isResponsive,
   data,
+  error,
 })
 
 const createActionRunner = action => () => {
   let result
   try {
     return action()
-      .then(data => CheckEvent(true, data))
-      .catch(data => CheckEvent(false, data))
+      .then(data => CheckEvent(true, data, null))
+      .catch(error => CheckEvent(false, null, error))
   } catch (error) {
-    CheckEvent(false, error)
+    CheckEvent(false, null, error)
   }
 }
 

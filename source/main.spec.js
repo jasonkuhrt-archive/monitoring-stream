@@ -1,4 +1,3 @@
-/* eslint-disable */
 import Monitor from "../source/main"
 import Chai from "chai"
 import F from "ramda"
@@ -59,7 +58,7 @@ it("monitor recursively executes given action", () =>
     .collect()
     .then(Assert.eq(F.repeat(Action.ok.data, 4))))
 
-it("monitor events are of MonitorEvent type", () =>
+it("monitor pongs have the right MonitorEvent values", () =>
   Monitor.create(Action.ok, 20)
     .take(1)
     .drain()
@@ -68,5 +67,19 @@ it("monitor events are of MonitorEvent type", () =>
         isResponsive: true,
         isResponsiveChange: true,
         data: Action.ok.data,
+        error: null,
+      }),
+    ))
+
+it("monitor drops have the right MonitorEvent values", () =>
+  Monitor.create(Action.fail, 20)
+    .take(1)
+    .drain()
+    .then(
+      Assert.eq({
+        isResponsive: false,
+        isResponsiveChange: true,
+        data: null,
+        error: Action.fail.value,
       }),
     ))
