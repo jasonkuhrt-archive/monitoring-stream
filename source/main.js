@@ -17,6 +17,12 @@ const createActionRunner = action => () => {
   }
 }
 
+const isDown = event => !event.isResponsive
+const isUp = event => event.isResponsive
+const isChange = event => event.isResponsiveChanged
+const isFall = event => !event.isResponsive && event.isResponsiveChanged
+const isRise = event => event.isResponsive && event.isResponsiveChanged
+
 const create = (action, checkIntervalMs = 1000) => {
   const stream = FRP.periodic(checkIntervalMs)
     .map(createActionRunner(action))
@@ -31,26 +37,12 @@ const create = (action, checkIntervalMs = 1000) => {
     )
     .multicast()
 
-  const drops = stream.filter(event => !event.isResponsive)
-
-  const pongs = stream.filter(event => event.isResponsive)
-
-  const changes = stream.filter(event => event.isResponsiveChanged)
-
-  const downs = changes.filter(
-    event => !event.isResponsive && event.isResponsiveChanged,
-  )
-
-  const ups = changes.filter(
-    event => event.isResponsive && event.isResponsiveChanged,
-  )
-
   return Object.assign(stream, {
-    drops,
-    pongs,
-    changes,
-    downs,
-    ups,
+    downs: stream.filter(isDown),
+    ups: stream.filter(isUp),
+    changes: stream.filter(isChange),
+    falls: stream.filter(isFall),
+    rises: stream.filter(isRise),
   })
 }
 

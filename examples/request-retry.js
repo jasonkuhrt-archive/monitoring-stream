@@ -7,8 +7,8 @@ const action = () =>
 
 const monitor = Monitor.create(action, 1000)
 
-monitor.pongs
-  .takeUntil(monitor.drops.takeUntil(monitor.pongs).take(3))
+monitor.ups
+  .takeUntil(monitor.downs.takeUntil(monitor.ups).take(3))
   .take(1)
   .drain()
   .then(console.log.bind(null, "Finished awaiting availability with result: "))

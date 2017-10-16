@@ -37,7 +37,7 @@ const pingElasticSearch = () =>
 const pingInterval = 1000
 const pingAttempts = 3
 const monitor = Monitor.create(pingElasticSearch, pingInterval)
-const maxRetries = monitor.drops.takeUntil(monitor.pongs).take(pingAttempts)
+const maxRetries = monitor.downs.takeUntil(monitor.ups).take(pingAttempts)
 
 monitor
   .ups
@@ -88,19 +88,19 @@ Monitor.create(action: () => Promise<A>, intervalMs: number?) => Observable<Moni
 
 There are several additional streams pre-filtered on monitor instances that provide a convenient way to consume just a subset of events without any additional code/work from you. You can see these being used in the example.
 
-##### #pongs
+##### #ups
 
 Stream of events where `isResponsive` is `true`.
 
-##### #drops
+##### #downs
 
 Stream of events where `isResponsive` is `false`.
 
-##### #ups
+##### #rises
 
 Stream of events where `isResponsive` is `true` and `isResponsiveChanged` is `true`.
 
-##### #downs
+##### #falls
 
 Stream of events where `isResponsive` is `false` and `isResponsiveChanged` is `true`.
 

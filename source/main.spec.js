@@ -27,7 +27,7 @@ Action.ok.data = 1
 Action.fail = () => P.reject(Action.fail.value)
 Action.fail.value = new Error("FAIL")
 
-Action.loop = actions => {
+Action.loop = (...actions) => {
   let callCount = 0
   return () => {
     if (callCount === actions.length) callCount = 0
@@ -58,7 +58,7 @@ it("monitor recursively executes given action", () =>
     .collect()
     .then(Assert.eq(F.repeat(Action.ok.data, 4))))
 
-it("monitor pongs have the right MonitorEvent values", () =>
+it("monitor rises have the right MonitorEvent values", () =>
   Monitor.create(Action.ok, 20)
     .take(1)
     .drain()
@@ -71,7 +71,7 @@ it("monitor pongs have the right MonitorEvent values", () =>
       }),
     ))
 
-it("monitor drops have the right MonitorEvent values", () =>
+it("monitor falls have the right MonitorEvent values", () =>
   Monitor.create(Action.fail, 20)
     .take(1)
     .drain()
@@ -83,3 +83,11 @@ it("monitor drops have the right MonitorEvent values", () =>
         error: Action.fail.value,
       }),
     ))
+
+// describe(".ups", () => {
+//   it("emits on successful event", () =>
+//     Monitor.create(Action.loop(Action.ok), 20)
+//       .ups.take(5)
+//       .collect()
+//       .then())
+// })
