@@ -84,26 +84,71 @@ Monitor.create(action: () => Promise<A>, intervalMs: number?) => Observable<Moni
 
 * `returns` An observable stream of `MonitorEvent`. The observable implementation we use is https://github.com/cujojs/most[`most`].
 
+### Event State Helpers
+
+There are several statically exported predicate functions that can tell you what kind of state a `MonitorEvent` is in.
+
+##### .isUp
+
+```js
+Monitor.isUp(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `true`.
+
+##### .isDown
+
+```js
+Monitor.isDown(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `false`.
+
+##### .isRise
+
+```js
+Monitor.isRise(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `true` and `isResponsiveChanged` is `true`.
+
+##### .isFall
+
+```js
+Monitor.isFall(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `false` and `isResponsiveChanged` is `true`.
+
+##### .isChanges
+
+```js
+Monitor.isChanges(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsiveChanged` is `true`.
+
+
 ### Sub-streams
 
-There are several additional streams pre-filtered on monitor instances that provide a convenient way to consume just a subset of events without any additional code/work from you. You can see these being used in the example.
+There are several additional streams on monitor instances that are filtered by event state predicates. These sub-streams provide a convenient way to consume just a subset of events without any additional code/work from you.
 
 ##### #ups
 
-Stream of events where `isResponsive` is `true`.
+Stream filtered by `Monitor.isUp`
 
 ##### #downs
 
-Stream of events where `isResponsive` is `false`.
+Stream filtered by `Monitor.isDown`
 
 ##### #rises
 
-Stream of events where `isResponsive` is `true` and `isResponsiveChanged` is `true`.
+Stream filtered by `Monitor.isRise`
 
 ##### #falls
 
-Stream of events where `isResponsive` is `false` and `isResponsiveChanged` is `true`.
+Stream filtered by `Monitor.isFall`
 
 ##### #changes
 
-Stream of events where `isResponsiveChanged` is `true`.
+Stream filtered by `Monitor.isChange`

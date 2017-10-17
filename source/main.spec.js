@@ -1,4 +1,3 @@
-/* eslint-disable */
 import M from "../source/main"
 import Chai from "chai"
 import F from "ramda"
