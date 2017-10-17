@@ -4,8 +4,8 @@
     "test": "jest",
     "test:dev": "jest --watch",
     "build": "rm -rf build && babel --out-dir build source",
-    "postversion": "git push && git push --tags && npm publish",
-    "prepublish": "npm run build",
+    "postversion": "git push && git push --tags && npm publish && release",
+    "prepublish": "yarn run build",
     "examples:request-retry": "yarn babel-node examples/request-retry.js"
   },
   "dependencies": {
@@ -43,7 +43,8 @@
     "eslint": "^3.12.0",
     "eslint-config-littlebits": "^0.5.1",
     "jest-cli": "^21.2.1",
-    "ramda": "^0.25.0"
+    "ramda": "^0.25.0",
+    "release": "^2.5.2"
   },
   "eslintConfig": {
     "extends": [
