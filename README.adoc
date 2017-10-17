@@ -32,7 +32,7 @@ const runTests = () =>
   Promise.resolve("Your integration test suite here...")
 
 const pingElasticSearch = () =>
-  Boolean(Math.round(Math.random()))
+  Math.round(Math.random())
     ? Promise.reject(new Error("Foobar network error"))
     : Promise.resolve("OK!")
 
