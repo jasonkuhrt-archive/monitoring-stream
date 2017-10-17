@@ -5,7 +5,8 @@
     "test:dev": "jest --watch",
     "build": "rm -rf build && babel --out-dir build source",
     "postversion": "git push && git push --tags && npm publish",
-    "prepublish": "npm run build"
+    "prepublish": "npm run build",
+    "examples:request-retry": "yarn babel-node examples/request-retry.js"
   },
   "dependencies": {
     "most": "^1.7.2"
