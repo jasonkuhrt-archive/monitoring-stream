@@ -1,118 +1,50 @@
 import * as FRP from "most"
 
-
-
-const eventTypeUpdater = (type) => (event) => (
-  Object.assign({}, event, {
-    type,
-  })
-)
-
-const eventNames = {
-  check: "check",
-  drop: "drop",
-  pong: "pong",
-  change: "change",
-  down: "down",
-  up: "up",
-}
-
-const CheckEvent = (data) => ({
-  type: eventNames.check,
+const CheckEvent = (isResponsive, data, error) => ({
+  isResponsive,
   data,
+  error,
 })
 
-const ActionOkRecord = (result) => ({
-  isResponsive: true,
-  result,
-})
-
-const ActionFailRecord = (result) => ({
-  isResponsive: false,
-  result,
-})
-
-const ActionChecker = (action) => {
-  const checkAction = () =>
-    action()
-    .then(ActionOkRecord)
-    .catch(ActionFailRecord)
-    .then(CheckEvent)
-  return checkAction
+const createActionRunner = action => () => {
+  let result
+  try {
+    return action()
+      .then(data => CheckEvent(true, data, null))
+      .catch(error => CheckEvent(false, null, error))
+  } catch (error) {
+    return Promise.resolve(CheckEvent(false, null, error))
+  }
 }
+
+const isDown = event => !event.isResponsive
+const isUp = event => event.isResponsive
+const isChange = event => event.isResponsiveChanged
+const isFall = event => !event.isResponsive && event.isResponsiveChanged
+const isRise = event => event.isResponsive && event.isResponsiveChanged
 
 const create = (action, checkIntervalMs = 1000) => {
-
-  const checks =
-    FRP
-    .periodic(checkIntervalMs, 0)
-    .map(ActionChecker(action))
-    .await()
+  const stream = FRP.periodic(checkIntervalMs)
+    .map(createActionRunner(action))
+    .awaitPromises()
+    .scan(([, currPrev], currNow) => [currPrev, currNow], [null, null])
+    // We skip 1 because our given scan seed of [null, null] is emitted into the stream as the initial scan output but we don't want it.
+    .skip(1)
+    .map(([prev, curr]) =>
+      Object.assign(curr, {
+        isResponsiveChanged: !prev || prev.isResponsive !== curr.isResponsive,
+      }),
+    )
     .multicast()
 
-  const drops =
-    checks
-    .filter((event) => (!event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.drop))
-
-  const pongs =
-    checks
-    .filter((event) => (event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.pong))
-
-  const changes =
-    checks
-    .scan(
-      ([ , prev ], curr) => [ prev, curr ],
-      [ null, null ]
-    )
-    .filter(([ prev, curr ]) => (
-      curr &&
-      (!prev || prev.data.isResponsive !== curr.data.isResponsive)
-    ))
-    .map(([ , curr ]) => curr)
-    .map(eventTypeUpdater(eventNames.change))
-
-  const downs =
-    changes
-    .filter((event) => (!event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.down))
-
-  const ups =
-    changes
-    .filter((event) => (event.data.isResponsive))
-    .map(eventTypeUpdater(eventNames.up))
-
-  const allEvents =
-    FRP.mergeArray([
-      checks,
-      drops,
-      pongs,
-      changes,
-      ups,
-      downs,
-    ])
-
-  return Object.assign(allEvents, {
-    checks,
-    drops,
-    pongs,
-    changes,
-    downs,
-    ups,
+  return Object.assign(stream, {
+    downs: stream.filter(isDown),
+    ups: stream.filter(isUp),
+    changes: stream.filter(isChange),
+    falls: stream.filter(isFall),
+    rises: stream.filter(isRise),
   })
 }
 
-
-
-
-
-
-export default {
-  create,
-  eventNames,
-}
-export {
-  create,
-  eventNames,
-}
+export default { create, isDown, isUp, isChange, isFall, isRise }
+export { create, isDown, isUp, isChange, isFall, isRise }

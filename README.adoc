@@ -9,74 +9,146 @@ image:https://travis-ci.org/jasonkuhrt/uri-monitor.svg?branch=master["Build Stat
 toc::[]
 
 
-
 ## Installation
 
 ```
-npm install --save uri-monitor
+yarn add uri-monitor
 ```
 
+## About
+
+This is a tiny library that makes it trivial to monitor the results of repeatedly executing an asynchronous action. A canonical use-case would be monitoring a URL for healthy (e.g. status code 200) responses but really it could be anything, including actions that don't do any IO but still have something to monitor such random computation. This is a fairly general tool and it interestingly generalizes some things that previously would have been realized with purpose-built code. For example the concept of request-retry can be generally implemented with this library, see the example below.
+
+## Examples
+
+#### Declarative Request-Retry
+
+We can combine streams together to declaratively create request-retry logic. Inspiration for this example was taken from the imperative request-retry logic in  https://github.com/elastic/elasticsearch-js/blob/master/test/integration/yaml_suite/client_manager.js#L30-L42[this ElasticSearch test suite] which establishes the connectivity with the database before running its test suite.
+
+```js
+const runTests = () =>
+  Promise.resolve("Your integration test suite here...")
+
+const pingElasticSearch = () =>
+  Boolean(Math.round(Math.random()))
+    ? Promise.reject(new Error("Foobar network error"))
+    : Promise.resolve("OK!")
+
+const pingInterval = 1000
+const pingAttempts = 3
+const monitor = Monitor.create(pingElasticSearch, pingInterval)
+const maxRetries = monitor.downs.takeUntil(monitor.ups).take(pingAttempts)
+
+monitor
+  .ups
+  .take(1)
+  .takeUntil(maxRetries)
+  .drain()
+  .then((result) =>
+    result.isResponsive
+      ? runTests()
+      : Promise.reject(result.data)
+  ))
+```
 
 ## API
 
-### Monitor.create
+### Types
 
-```js
-Monitor.create(action : () => Promise<A>, intervalMs : number?): Observable<MonitorEvent<A>>
-```
-
-* `action` The async action to recurse. The expected usage is that you are somehow pinging the resource you are interested in monitoring.
-
-* `intervalMs` The milliseconds between each `action` invocation. Defaults to `1000`.
-
-* `returns` An observable stream of monitor events. The observable implementation we use is https://github.com/cujojs/most[`most`].
-
-
-
-### MonitorEvent<A>
-
-Every application of `action` returns a regular promise which ultimately resolves or rejects. In the context of a stream of such values, it is useful to have various terms to refer to different states and patterns of state change:
-
-|===
-| Event Name | Case
-| `pong` | promise resolved
-| `drop` | promise rejected
-| `check` | case of `pong` or `drop`
-| `up` | promise resolved and: previous attempt rejected or was nothing (initial check)
-| `down` | promise rejected and: previous attempt resolved or was nothing (initial case)
-| `change` | case of `up` or `down`
-|===
-
-
-With this in mind, the structure of a `MonitorEvent` is:
+#### MonitorEvent
 
 ```js
 type MonitorEvent<A> = {
-  type : string,
-  data : {
-    isResponsive : boolean,
-    result : A,
-  }
+  isResponsive: boolean,
+  isResponsiveChanged: boolean,
+  data: A | null
+  error: Error | null
 }
 ```
 
-And the value of `type` is any of the aforementioned event names.
+A monitor event represents the result of an action invocation. The type variable `A` represents the action's resolution type.
 
-`result` is the settled value of the promise returned from `action`.
+`isResponsive` indicates if the action is resolving while `isResponsiveChanged` indicates if that state is different than the previous event. For the first check wherein there is no such previous event `isResponsiveChanged` is considered to be `true`.
 
-### monitor.<substream>
+You can think of `isResponsive` as being your health indicator while `isResponsiveChanged` as being your alert to when crashing or recovery occurs. `isResponsiveChanged` is technically a convenience that you could calculate yourself but seeing as its often needed and that its calculation requires state it seems worthwhile.
 
-The observable stream returned by <<create, `create`>> contains **all** events. For example on the first monitor check four events will occur: `check`, `drop | pong`, `change`, `up | down`. But often this is more noise than you want and while it is easy enough to filter the stream (`monitor.filter(...)`) there is an easier way. Each event type has a corresponding property on the main stream whose value is a filtered stream of _just that event_:
+### .create
+
+```js
+Monitor.create(action: () => Promise<A>, intervalMs: number?) => Observable<MonitorEvent<A>>
+```
+
+* `action` The async action to recurse. This could be anything: HTTP requests, pure calculation, file system checks...
+
+* `intervalMs` The milliseconds between each `action` invocation. Defaults to `1000`.
+
+* `returns` An observable stream of `MonitorEvent`. The observable implementation we use is https://github.com/cujojs/most[`most`].
+
+### Event State Helpers
+
+There are several statically exported predicate functions that can tell you what kind of state a `MonitorEvent` is in.
+
+##### .isUp
+
+```js
+Monitor.isUp(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `true`.
+
+##### .isDown
+
+```js
+Monitor.isDown(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `false`.
+
+##### .isRise
+
+```js
+Monitor.isRise(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `true` and `isResponsiveChanged` is `true`.
+
+##### .isFall
+
+```js
+Monitor.isFall(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsive` is `false` and `isResponsiveChanged` is `true`.
+
+##### .isChanges
+
+```js
+Monitor.isChanges(event: MonitorEvent) => boolean
+```
+
+Returns `true` if event `isResponsiveChanged` is `true`.
 
 
-##### monitor.checks
+### Sub-streams
 
-##### monitor.pongs
+There are several additional streams on monitor instances that are filtered by event state predicates. These sub-streams provide a convenient way to consume just a subset of events without any additional code/work from you.
 
-##### monitor.drops
+##### #ups
 
-##### monitor.ups
+Stream filtered by `Monitor.isUp`
 
-##### monitor.downs
+##### #downs
 
-##### monitor.changes
+Stream filtered by `Monitor.isDown`
+
+##### #rises
+
+Stream filtered by `Monitor.isRise`
+
+##### #falls
+
+Stream filtered by `Monitor.isFall`
+
+##### #changes
+
+Stream filtered by `Monitor.isChange`
