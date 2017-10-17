@@ -13,7 +13,7 @@ const createActionRunner = action => () => {
       .then(data => CheckEvent(true, data, null))
       .catch(error => CheckEvent(false, null, error))
   } catch (error) {
-    CheckEvent(false, null, error)
+    return Promise.resolve(CheckEvent(false, null, error))
   }
 }
 
@@ -32,7 +32,7 @@ const create = (action, checkIntervalMs = 1000) => {
     .skip(1)
     .map(([prev, curr]) =>
       Object.assign(curr, {
-        isResponsiveChanged: !prev || prev.isResponsive === curr.isResponsive,
+        isResponsiveChanged: !prev || prev.isResponsive !== curr.isResponsive,
       }),
     )
     .multicast()
@@ -46,5 +46,5 @@ const create = (action, checkIntervalMs = 1000) => {
   })
 }
 
-export default { create }
-export { create }
+export default { create, isDown, isUp, isChange, isFall, isRise }
+export { create, isDown, isUp, isChange, isFall, isRise }
