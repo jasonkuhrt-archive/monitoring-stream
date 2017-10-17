@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/jasonkuhrt/uri-monitor.git"
+    "url": "git://github.com/jasonkuhrt/monitoring-stream.git"
   },
   "keywords": [
     "promise",
@@ -27,7 +27,7 @@
     "pong"
   ],
   "author": "Jason Kuhrt <jasonkuhrt@me.com> (http://jasonkuhrt.com/)",
-  "name": "uri-monitor",
+  "name": "monitoring-stream",
   "directories": {
     "test": "test"
   },
@@ -60,7 +60,7 @@
     ]
   },
   "bugs": {
-    "url": "https://github.com/jasonkuhrt/uri-monitor/issues"
+    "url": "https://github.com/jasonkuhrt/monitoring-stream/issues"
   },
   "jest": {
     "testEnvironment": "node",
