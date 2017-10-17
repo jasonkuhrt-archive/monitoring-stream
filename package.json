@@ -9,6 +9,7 @@
     "examples:request-retry": "yarn babel-node examples/request-retry.js"
   },
   "dependencies": {
+    "monitoring-stream": "^1.0.0",
     "most": "^1.7.2"
   },
   "repository": {

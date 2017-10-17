@@ -2844,6 +2844,12 @@ minimist@~0.0.1:
   dependencies:
     minimist "0.0.8"
 
+monitoring-stream@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/monitoring-stream/-/monitoring-stream-1.0.0.tgz#a1331e6d64d9e1d0e3b24fa76afd7cb8289729de"
+  dependencies:
+    most "^1.7.2"
+
 most@^1.7.2:
   version "1.7.2"
   resolved "https://registry.yarnpkg.com/most/-/most-1.7.2.tgz#3f8b8bf0e4410ad8490b3599ea3777fca964a1c4"

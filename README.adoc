@@ -17,7 +17,7 @@ yarn add monitoring-stream
 
 ## About
 
-This is a tiny library that makes it trivial to monitor the results of repeatedly executing an asynchronous action. A canonical use-case would be monitoring a URL for healthy (e.g. status code 200) responses but really it could be anything, including actions that don't do any IO but still have something to monitor such random computation. This is a fairly general tool and it interestingly generalizes some things that previously would have been realized with purpose-built code. For example the concept of request-retry can be generally implemented with this library, see the example below.
+This is a tiny library that makes it trivial to monitor the results of repeatedly executing an asynchronous action. A canonical use-case would be monitoring a URL for healthy (e.g. status code 200) responses but really it could be anything, including actions that don't do any IO but still have something to monitor like random computation. This is a fairly general tool and it interestingly generalizes some things that previously would have been realized with purpose-built code. For example the concept of request-retry can be generally implemented with this library, see the example below.
 
 ## Examples
 
